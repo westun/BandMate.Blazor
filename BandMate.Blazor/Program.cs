@@ -1,6 +1,7 @@
 using BandMate.Blazor.Components;
 using BandMate.Blazor.Components.Account;
 using BandMate.Blazor.Data;
+using BandMate.Domain.Persistence;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -43,6 +44,9 @@ namespace BandMate.Blazor
                 .AddDefaultTokenProviders();
 
             builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+
+            builder.Services.AddDbContextFactory<BandMateContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             var app = builder.Build();
 
