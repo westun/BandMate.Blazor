@@ -1,0 +1,34 @@
+﻿@page "/quick-grid-demo"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Components.QuickGrid
+@inject ISongService SongService
+
+<h3>QuickGrid Demo</h3>
+
+<QuickGrid Items="@Songs">
+    <PropertyColumn Property="@(p => p.Artist)" Sortable="true" />
+    <PropertyColumn Property="@(p => p.Title)" Sortable="true" />
+</QuickGrid>
+
+@code {
+    IQueryable<SongDTO> Songs = (new List<SongDTO>()).AsQueryable();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            this.LoadSongs();
+        }
+    }
+
+    private async Task LoadSongs()
+    {
+        var hardCodedBandID = 2; 
+        this.Songs = (await SongService.GetSongsByBandIDAsync(hardCodedBandID))
+            .OrderBy(s => s.Artist)
+            .ThenBy(s => s.Title)
+            .AsQueryable();
+
+        this.StateHasChanged();
+    }
+}

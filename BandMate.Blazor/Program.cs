@@ -1,5 +1,6 @@
 using BandMate.Blazor.Components;
 using BandMate.Blazor.Components.Account;
+using BandMate.Blazor.Configuration;
 using BandMate.Blazor.Data;
 using BandMate.Domain.Persistence;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -47,6 +48,11 @@ namespace BandMate.Blazor
 
             builder.Services.AddDbContextFactory<BandMateContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            builder.Services.AddDalRepositories();
+            builder.Services.AddDalServices();
+
+            builder.Services.AddAutoMapper(cfg => { }, typeof(Program));
 
             var app = builder.Build();
 
