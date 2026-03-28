@@ -15,7 +15,7 @@ else
     <h1 class="text-center">@this.CurrentBand.Name</h1>
     <h2>@Songs.Count() Songs</h2>
 
-    <Tabs EnableFadeEffect="false" NavStyle="NavStyle.Pills">
+    <Tabs EnableFadeEffect="false" NavStyle="NavStyle.Pills" Class="mb-3">
         @{ int songListTypeIndex = 0; } @* To set first song type in list to actuve *@
         @foreach (var songListType in this.SongListTypes)
         {

@@ -7,3 +7,11 @@
     .blazor-error-boundary::after {
         content: "An error has occurred."
     }
+
+/*This looks funny if the tab has no content, it's just a bordered box with nothing in it*/
+.tab-content {
+     padding: 0px; 
+     margin-top: 0px; 
+     border: 0px; 
+     border-radius: 0rem; 
+}
