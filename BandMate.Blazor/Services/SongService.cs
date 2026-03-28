@@ -21,7 +21,17 @@ namespace BandMate.Blazor.Services
         {
             var songs = await this.songRepository.GetByBandIDAsync(bandID);
 
-            return this.mapper.Map<IEnumerable<SongDTO>>(songs);
+            var songDTOs = this.mapper.Map<IEnumerable<SongDTO>>(songs);
+
+            songDTOs = songDTOs.OrderBy(s => s.Artist).ThenBy(s => s.Title);
+
+            songDTOs.Select(s =>
+            {
+                s.CreatedDateForDisplay = s.CreatedDate.ToString("d");
+                return s;
+            }).ToList();
+
+            return songDTOs;
         }
 
     }
