@@ -3,6 +3,7 @@
 @using BlazorBootstrap
 @using BlazorBootstrap.Components
 @inject ISongService SongService
+@inject ISongListTypeService SongListTypeService
 
 @if (this.IsLoading)
 {
@@ -77,12 +78,7 @@ else
     private IEnumerable<SongDTO> MasterSongList { get; set; } = Enumerable.Empty<SongDTO>().ToList();
     private int CurrentSongListTypeID { get; set; } = 0;
     //TODO: get this data from the database instead of hardcoding it here
-    private IEnumerable<SongListTypeDTO> SongListTypes = new[]
-    {
-        new SongListTypeDTO() { SongListTypeID = 1, ListTypeName = "In Progress" },
-        new SongListTypeDTO() { SongListTypeID = 2, ListTypeName = "Completed" },
-        new SongListTypeDTO() { SongListTypeID = 3, ListTypeName = "Archive" },
-    };
+    private IEnumerable<SongListTypeDTO> SongListTypes { get; set; } = Enumerable.Empty<SongListTypeDTO>().ToList();
     private int currentBandID { get; set; } = 2;
     private bool IsLoading { get; set; } = true;
     private HashSet<SongDTO> SelectedSongs = new();
@@ -116,6 +112,8 @@ else
         if (firstRender)
         {
             this.MasterSongList = (await this.SongService.GetSongsByBandIDAsync(this.currentBandID)).ToList();
+            this.SongListTypes = (await this.SongListTypeService.GetBandIDAsync(this.currentBandID)).ToList();
+            this.StateHasChanged();
         }
     }
 

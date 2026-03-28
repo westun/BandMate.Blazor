@@ -7,7 +7,8 @@ namespace BandMate.Blazor.Configuration
         public static IServiceCollection AddDalServices(this IServiceCollection services)
         {
             services.AddTransient<ISongService, SongService>();
-            
+            services.AddTransient<ISongListTypeService, SongListTypeService>();
+
             return services;
         }
     }

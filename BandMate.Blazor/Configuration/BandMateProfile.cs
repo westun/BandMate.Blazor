@@ -8,8 +8,8 @@ namespace BandMate.Blazor.Configuration
     {
         public BandMateProfile()
         {
-            this.CreateMap<Song, SongDTO>()
-                .ReverseMap();
+            this.CreateMap<Song, SongDTO>().ReverseMap();
+            this.CreateMap<SongListType, SongListTypeDTO>().ReverseMap();
         }
     }
 }
