@@ -4,6 +4,7 @@
 @using BlazorBootstrap.Components
 @inject ISongService SongService
 @inject ISongListTypeService SongListTypeService
+@inject IBandService BandService
 
 @if (this.IsLoading)
 {
@@ -11,7 +12,7 @@
 }
 else
 {
-    <h1>{ YOUR BAND NAME }</h1>
+    <h1 class="text-center">@this.CurrentBand.Name</h1>
     <h2>@Songs.Count() Songs</h2>
 
     <Tabs EnableFadeEffect="false" NavStyle="NavStyle.Pills">
@@ -84,8 +85,9 @@ else
     private bool IsLoading { get; set; } = true;
     private HashSet<SongDTO> SelectedSongs = new();
     private Grid<SongDTO> CurrentGrid = new();
-    private Modal RemoveSongModal;
-    private SongDTO CurrentSelectedSong { get; set; }
+    private Modal RemoveSongModal = new();
+    private SongDTO CurrentSelectedSong { get; set; } = new();
+    private BandDTO CurrentBand { get; set; } = new();
 
     private async Task<GridDataProviderResult<SongDTO>> SongDataProvider(GridDataProviderRequest<SongDTO> request)
     {
@@ -115,6 +117,7 @@ else
             this.MasterSongList = (await this.SongService.GetSongsByBandIDAsync(this.currentBandID)).ToList();
             this.SongListTypes = (await this.SongListTypeService.GetBandIDAsync(this.currentBandID)).ToList();
             this.CurrentSongListTypeID = this.SongListTypes.FirstOrDefault()?.SongListTypeID ?? 0;
+            this.CurrentBand = await this.BandService.GetBand(this.currentBandID);
             this.StateHasChanged();
         }
     }
