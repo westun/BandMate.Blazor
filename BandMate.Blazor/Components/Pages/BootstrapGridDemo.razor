@@ -52,7 +52,25 @@ else
     <GridColumn TItem="SongDTO" HeaderText="KeySignature" PropertyName="KeySignature" SortString="KeySignature" SortKeySelector="item => item.KeySignature">
         @context.KeySignature
     </GridColumn>
+    <GridColumn TItem="SongDTO" HeaderText="Actions">
+        <Button Color="ButtonColor.Danger"
+                Class="ms-2" 
+                @onclick="() => this.OnConfirmRemoveSongClick(context)">
+            <Icon Name="IconName.Trash" />
+        </Button>
+    </GridColumn>
+
 </Grid>
+
+<Modal @ref="RemoveSongModal" Title="Are you sure?" OnHidden="OnHideRemoveSongModalClick">
+    <BodyTemplate>
+        Are you sure you want to remove the song: <strong>@CurrentSelectedSong?.Title</strong> by <strong>@CurrentSelectedSong?.Artist</strong>?
+    </BodyTemplate>
+    <FooterTemplate>
+        <Button Color="ButtonColor.Secondary" @onclick="OnHideRemoveSongModalClick">Cancel</Button>
+        <Button Color="ButtonColor.Danger" @onclick="OnRemoveSelectedSongClick">Remove</Button>
+    </FooterTemplate>
+</Modal>
 
 @code {
     private IQueryable<SongDTO> Songs { get; set; } = Enumerable.Empty<SongDTO>().AsQueryable();
@@ -69,6 +87,8 @@ else
     private bool IsLoading { get; set; } = true;
     private HashSet<SongDTO> SelectedSongs = new();
     private Grid<SongDTO> CurrentGrid = new();
+    private Modal RemoveSongModal;
+    private SongDTO CurrentSelectedSong { get; set; }
 
     private async Task<GridDataProviderResult<SongDTO>> SongDataProvider(GridDataProviderRequest<SongDTO> request)
     {
@@ -108,5 +128,23 @@ else
     private async Task RefreshGrid()
     {
         await this.CurrentGrid.RefreshDataAsync();
+    }
+
+    private async Task OnConfirmRemoveSongClick(SongDTO song)
+    {
+        this.CurrentSelectedSong = song;
+        await this.RemoveSongModal.ShowAsync();
+    }
+
+    private async Task OnRemoveSelectedSongClick()
+    {
+        this.CurrentSelectedSong = new();
+        await this.RemoveSongModal.HideAsync();
+    }
+
+    private async Task OnHideRemoveSongModalClick()
+    {
+        this.CurrentSelectedSong = new();
+        await this.RemoveSongModal.HideAsync();
     }
 }
