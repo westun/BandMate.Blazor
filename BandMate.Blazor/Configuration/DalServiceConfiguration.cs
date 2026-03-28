@@ -8,6 +8,7 @@ namespace BandMate.Blazor.Configuration
         {
             services.AddTransient<ISongService, SongService>();
             services.AddTransient<ISongListTypeService, SongListTypeService>();
+            services.AddTransient<IBandService, BandService>();
 
             return services;
         }
