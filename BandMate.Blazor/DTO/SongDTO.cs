@@ -1,4 +1,6 @@
-﻿namespace BandMate.Blazor.DTO
+﻿using BootstrapBlazor.Components;
+
+namespace BandMate.Blazor.DTO
 {
     public class SongDTO
     {
@@ -19,6 +21,7 @@
         public string? Notes { get; set; }
         public DateTimeOffset? ReleaseDate { get; set; }
         public DateTimeOffset CreatedDate { get; set; }
+        public string CreatedDateForDisplay { get; set; }
         public string MyNotes { get; set; }
         public string CreatedByAccountID { get; set; }
     }
