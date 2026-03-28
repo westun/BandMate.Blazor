@@ -1,0 +1,150 @@
+﻿@page "/bootstrap-blazor-grid-demo"
+@rendermode InteractiveServer
+@inject ISongService SongService
+
+<h1>YOUR BAND NAME</h1>
+
+<h2>@Songs.Count() Songs</h2>
+
+<Button Color="Color.Danger"
+        Icon="fa-solid fa-trash-can"
+        IsOutline="true"
+        OnClick="@(async () => await OnSongListTypeChanged(3))" />
+
+<Table @ref="CurrentTable"
+       TItem="SongDTO" 
+       IsBordered="true" 
+       IsStriped="true"
+       TableSize="TableSize.Normal" 
+       IsMultipleSelect="true"
+       OnQueryAsync="OnQueryAsync"
+       PageItems="200"
+       IsPagination="false">
+    <TableColumns>
+        <TableColumn @bind-Field="@context.Artist" Filterable="true" Sortable="true" />
+        <TableColumn @bind-Field="@context.Title" Filterable="true" Sortable="true" />
+
+        <TableColumn 
+            TItem="SongDTO" 
+            TType="int" 
+            Text="Actions" 
+            Align="Alignment.Center" 
+            FieldName="@(nameof(SongDTO.SongID))">
+
+            <Template Context="song">
+                <div class="btn-group">
+                    <Button Color="Color.Danger" 
+                            Icon="fa-solid fa-trash-can" 
+                            IsOutline="true"
+                            OnClick="@(async () => await OnDeleteClicked(song.Row))" />
+                </div>
+            </Template>
+        </TableColumn>
+    </TableColumns>
+</Table>
+
+@code {
+    private IQueryable<SongDTO> Songs { get; set; } = Enumerable.Empty<SongDTO>().AsQueryable();
+    private IEnumerable<SongDTO> MasterSongList { get; set; } = Enumerable.Empty<SongDTO>().ToList();
+    private int CurrentSongListTypeID { get; set; } = 0;
+    private QueryPageOptions CurrentQueryOptions = new QueryPageOptions();
+    private Table<SongDTO> CurrentTable;
+
+
+    // private IQueryable<SongDTO> SongsFiltered
+    // {
+    //     get
+    //     {
+    //         return Enumerable.Empty<SongDTO>().AsQueryable();
+    //         //return songs where songtype = current songtype
+    //     }
+    // }
+
+    private async Task<QueryData<SongDTO>> OnQueryAsync(QueryPageOptions options)
+    {
+        //save current options so that OnQueryAsync can be called from other places in the component (e.g. when a filter changes)
+        this.CurrentQueryOptions = options;
+
+        var hardCodedBandID = 2;
+
+        this.Songs = this.MasterSongList.ToList().AsQueryable();
+        if (!this.Songs.Any()) //if cached master list is empty, then get from service, otherwise use cached master list (which will be filtered/sorted/paged in-memory)
+        {
+            this.Songs = (await this.SongService.GetSongsByBandIDAsync(hardCodedBandID))
+                .OrderBy(s => s.Artist)
+                .ThenBy(s => s.Title)
+                .AsQueryable();
+        }
+
+        // 1. Filtering
+        if (this.CurrentSongListTypeID > 0)
+        {
+            this.Songs = this.Songs.Where(s => s.SongListTypeID == this.CurrentSongListTypeID);
+        }
+
+        // Note: If 'options.Filters' contains UI-driven filters, you'd loop them here
+
+        // 2. Count Total (After filtering, before paging)
+        var totalCount = this.Songs.Count();
+
+        // 3. Sorting
+        if (!string.IsNullOrEmpty(options.SortName))
+        {
+            // Simple manual sort example
+            this.Songs = options.SortOrder == SortOrder.Asc
+                ? this.Songs.OrderBy(s => s.Artist)
+                : this.Songs.OrderByDescending(s => s.Artist);
+        }
+
+        // 4. Paging
+        var items = this.Songs.Skip((options.PageIndex - 1) * options.PageItems)
+                         .Take(options.PageItems)
+                         .ToList();
+
+        this.StateHasChanged();
+
+        return new QueryData<SongDTO>()
+        {
+            Items = this.Songs.ToList(),
+            TotalCount = totalCount
+        };
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var hardCodedBandID = 2;
+            this.MasterSongList = (await this.SongService.GetSongsByBandIDAsync(hardCodedBandID)).ToList();
+        }
+    }
+
+    private async Task OnSongListTypeChanged(int songListTypeID)
+    {
+        this.CurrentSongListTypeID = songListTypeID;
+        await this.CurrentTable.QueryAsync(); //calling this to trigger a method that will cause the table items to update, otherwise won't update
+        // this.OnQueryAsync(this.CurrentQueryOptions);
+    }
+
+    private async Task OnViewSongDetailsClicked(SongDTO song)
+    {
+        System.Console.WriteLine($"Delete requested for ID: {song.SongID}");
+    }
+
+    private async Task OnDeleteClicked(SongDTO song)
+    {
+        System.Console.WriteLine($"Delete requested for ID: {song.SongID}");
+    }
+
+    private async Task ChangeData()
+    {
+        var hardCodedBandID = 2;
+        this.Songs = (await this.SongService.GetSongsByBandIDAsync(hardCodedBandID))
+            .OrderByDescending(s => s.Artist)
+            .ThenByDescending(s => s.Title)
+            .Where(s => s.SongListTypeID == 3)
+            .AsQueryable();
+
+        this.StateHasChanged();
+    }
+}

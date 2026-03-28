@@ -1,0 +1,57 @@
+﻿@page "/bootstrap-grid-demo"
+@rendermode InteractiveServer
+@using BlazorBootstrap
+@inject ISongService SongService
+
+<h3>Bootstrap Grid Demo</h3>
+
+<Grid TItem="SongDTO"
+        Class="table table-hover table-bordered table-striped"
+        DataProvider="SongDataProvider"
+        AllowFiltering="true"
+        AllowPaging="true"
+        AllowSorting="true"
+        Responsive="true"
+        AllowSelection="true">
+
+    <GridColumn TItem="SongDTO" HeaderText="Artist" PropertyName="Artist" SortString="Artist" SortKeySelector="item => item.Artist">
+        @context.Artist
+    </GridColumn>
+    <GridColumn TItem="SongDTO" HeaderText="Title" PropertyName="Title" SortString="Title" SortKeySelector="item => item.Title">
+        @context.Title
+    </GridColumn>
+</Grid>
+
+@code {
+    private int CurrentSongListTypeID = 0;
+
+    private async Task<GridDataProviderResult<SongDTO>> SongDataProvider(GridDataProviderRequest<SongDTO> request)
+    {
+        var hardCodedBandID = 2;
+        var songs = (await SongService.GetSongsByBandIDAsync(hardCodedBandID))
+            .OrderBy(s => s.Artist)
+            .ThenBy(s => s.Title)
+            .AsQueryable();
+
+        if (this.CurrentSongListTypeID > 0)
+        {
+
+        }
+
+        return request.ApplyTo(songs);
+
+        // return new GridDataProviderResult<SongDTO>
+        // {
+        //     Data = songs,
+        //     TotalCount = songs.Count()
+        // };
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            
+        }
+    }
+}

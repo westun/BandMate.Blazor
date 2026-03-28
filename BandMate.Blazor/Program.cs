@@ -54,6 +54,10 @@ namespace BandMate.Blazor
 
             builder.Services.AddAutoMapper(cfg => { }, typeof(Program));
 
+            builder.Services.AddBlazorBootstrap();
+
+            builder.Services.AddBootstrapBlazor();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
