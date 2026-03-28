@@ -1,6 +1,4 @@
-﻿using BootstrapBlazor.Components;
-
-namespace BandMate.Blazor.DTO
+﻿namespace BandMate.Blazor.DTO
 {
     public class SongDTO
     {

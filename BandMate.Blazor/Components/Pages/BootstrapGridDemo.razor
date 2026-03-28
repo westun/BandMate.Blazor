@@ -1,18 +1,41 @@
 ﻿@page "/bootstrap-grid-demo"
 @rendermode InteractiveServer
 @using BlazorBootstrap
+@using BlazorBootstrap.Components
 @inject ISongService SongService
 
-<h3>Bootstrap Grid Demo</h3>
+@if (this.IsLoading)
+{
+    <Spinner Type="SpinnerType.Dots" Color="SpinnerColor.Primary" Size="SpinnerSize.ExtraLarge" />
+}
+else
+{
+    <h1>{ YOUR BAND NAME }</h1>
+    <h2>@Songs.Count() Songs</h2>
 
-<Grid TItem="SongDTO"
-        Class="table table-hover table-bordered table-striped"
-        DataProvider="SongDataProvider"
-        AllowFiltering="true"
-        AllowPaging="true"
-        AllowSorting="true"
-        Responsive="true"
-        AllowSelection="true">
+    <Tabs EnableFadeEffect="false" NavStyle="NavStyle.Pills">
+        @foreach (var songListType in this.SongListTypes)
+        {
+            <Tab Title="@songListType.ListTypeName" 
+                IsActive="@(songListType.SongListTypeID == this.CurrentSongListTypeID)" 
+                OnClick="() => OnSongListTypeChanged(songListType.SongListTypeID)">
+                <Content></Content>
+            </Tab>
+        }
+    </Tabs>
+}
+
+<Grid @ref="CurrentGrid"
+    TItem="SongDTO"
+    Class="table table-hover table-bordered table-striped"
+    DataProvider="SongDataProvider"
+    AllowFiltering="false"
+    AllowPaging="false"
+    AllowSorting="true"
+    Responsive="true"
+    AllowSelection="true"
+    @bind-SelectedItems="this.SelectedSongs"
+    SelectionMode="GridSelectionMode.Multiple">
 
     <GridColumn TItem="SongDTO" HeaderText="Artist" PropertyName="Artist" SortString="Artist" SortKeySelector="item => item.Artist">
         @context.Artist
@@ -20,38 +43,70 @@
     <GridColumn TItem="SongDTO" HeaderText="Title" PropertyName="Title" SortString="Title" SortKeySelector="item => item.Title">
         @context.Title
     </GridColumn>
+    <GridColumn TItem="SongDTO" HeaderText="Created Date" PropertyName="CreatedDataForDisplay" SortString="CreatedDataForDisplay" SortKeySelector="item => item.CreatedDate">
+        @context.CreatedDateForDisplay
+    </GridColumn>
+    <GridColumn TItem="SongDTO" HeaderText="Bpm" PropertyName="Bpm" SortString="Bpm" SortKeySelector="item => item.Bpm">
+        @context.Bpm
+    </GridColumn>
+    <GridColumn TItem="SongDTO" HeaderText="KeySignature" PropertyName="KeySignature" SortString="KeySignature" SortKeySelector="item => item.KeySignature">
+        @context.KeySignature
+    </GridColumn>
 </Grid>
 
 @code {
-    private int CurrentSongListTypeID = 0;
+    private IQueryable<SongDTO> Songs { get; set; } = Enumerable.Empty<SongDTO>().AsQueryable();
+    private IEnumerable<SongDTO> MasterSongList { get; set; } = Enumerable.Empty<SongDTO>().ToList();
+    private int CurrentSongListTypeID { get; set; } = 0;
+    //TODO: get this data from the database instead of hardcoding it here
+    private IEnumerable<SongListTypeDTO> SongListTypes = new[]
+    {
+        new SongListTypeDTO() { SongListTypeID = 1, ListTypeName = "In Progress" },
+        new SongListTypeDTO() { SongListTypeID = 2, ListTypeName = "Completed" },
+        new SongListTypeDTO() { SongListTypeID = 3, ListTypeName = "Archive" },
+    };
+    private int currentBandID { get; set; } = 2;
+    private bool IsLoading { get; set; } = true;
+    private HashSet<SongDTO> SelectedSongs = new();
+    private Grid<SongDTO> CurrentGrid = new();
 
     private async Task<GridDataProviderResult<SongDTO>> SongDataProvider(GridDataProviderRequest<SongDTO> request)
     {
-        var hardCodedBandID = 2;
-        var songs = (await SongService.GetSongsByBandIDAsync(hardCodedBandID))
-            .OrderBy(s => s.Artist)
-            .ThenBy(s => s.Title)
-            .AsQueryable();
+        this.Songs = this.MasterSongList.ToList().AsQueryable();
+        if (!this.Songs.Any())
+        {
+            this.Songs = (await this.SongService.GetSongsByBandIDAsync(this.currentBandID)).AsQueryable();
+            this.MasterSongList = this.Songs.ToList();
+        }
 
         if (this.CurrentSongListTypeID > 0)
         {
-
+            this.Songs = this.Songs.Where(s => s.SongListTypeID == this.CurrentSongListTypeID);
         }
 
-        return request.ApplyTo(songs);
+        this.IsLoading = false;
 
-        // return new GridDataProviderResult<SongDTO>
-        // {
-        //     Data = songs,
-        //     TotalCount = songs.Count()
-        // };
+        this.StateHasChanged();
+
+        return request.ApplyTo(this.Songs);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            
+            this.MasterSongList = (await this.SongService.GetSongsByBandIDAsync(this.currentBandID)).ToList();
         }
+    }
+
+    private async Task OnSongListTypeChanged(int songListTypeID)
+    {
+        this.CurrentSongListTypeID = songListTypeID;
+        await this.RefreshGrid();
+    }
+
+    private async Task RefreshGrid()
+    {
+        await this.CurrentGrid.RefreshDataAsync();
     }
 }
