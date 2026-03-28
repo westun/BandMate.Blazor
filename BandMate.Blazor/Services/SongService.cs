@@ -34,5 +34,9 @@ namespace BandMate.Blazor.Services
             return songDTOs;
         }
 
+        public async Task DeleteAsync(int id)
+        {
+            await this.songRepository.DeleteAsync(id);
+        }
     }
 }

@@ -15,13 +15,15 @@ else
     <h2>@Songs.Count() Songs</h2>
 
     <Tabs EnableFadeEffect="false" NavStyle="NavStyle.Pills">
+        @{ int songListTypeIndex = 0; } @* To set first song type in list to actuve *@
         @foreach (var songListType in this.SongListTypes)
         {
             <Tab Title="@songListType.ListTypeName" 
-                IsActive="@(songListType.SongListTypeID == this.CurrentSongListTypeID)" 
+                 IsActive="@(songListTypeIndex == 0 || songListType.SongListTypeID == this.CurrentSongListTypeID)"
                 OnClick="() => OnSongListTypeChanged(songListType.SongListTypeID)">
                 <Content></Content>
             </Tab>
+            songListTypeIndex++;
         }
     </Tabs>
 }
@@ -77,9 +79,8 @@ else
     private IQueryable<SongDTO> Songs { get; set; } = Enumerable.Empty<SongDTO>().AsQueryable();
     private IEnumerable<SongDTO> MasterSongList { get; set; } = Enumerable.Empty<SongDTO>().ToList();
     private int CurrentSongListTypeID { get; set; } = 0;
-    //TODO: get this data from the database instead of hardcoding it here
     private IEnumerable<SongListTypeDTO> SongListTypes { get; set; } = Enumerable.Empty<SongListTypeDTO>().ToList();
-    private int currentBandID { get; set; } = 2;
+    private int currentBandID { get; set; } = 2; //TODO: Get from auth context or url
     private bool IsLoading { get; set; } = true;
     private HashSet<SongDTO> SelectedSongs = new();
     private Grid<SongDTO> CurrentGrid = new();
@@ -113,6 +114,7 @@ else
         {
             this.MasterSongList = (await this.SongService.GetSongsByBandIDAsync(this.currentBandID)).ToList();
             this.SongListTypes = (await this.SongListTypeService.GetBandIDAsync(this.currentBandID)).ToList();
+            this.CurrentSongListTypeID = this.SongListTypes.FirstOrDefault()?.SongListTypeID ?? 0;
             this.StateHasChanged();
         }
     }
@@ -136,13 +138,30 @@ else
 
     private async Task OnRemoveSelectedSongClick()
     {
-        this.CurrentSelectedSong = new();
+        await this.SongService.DeleteAsync(this.CurrentSelectedSong.SongID);
+
+        this.ClearSelectedSong();
         await this.RemoveSongModal.HideAsync();
+
+        this.ClearSongCache();
+        await this.RefreshGrid();
     }
 
     private async Task OnHideRemoveSongModalClick()
     {
-        this.CurrentSelectedSong = new();
+        this.ClearSelectedSong();
         await this.RemoveSongModal.HideAsync();
     }
+
+    private void ClearSelectedSong()
+    {
+        this.CurrentSelectedSong = new();
+    }
+
+    private void ClearSongCache()
+    {
+        this.Songs = Enumerable.Empty<SongDTO>().AsQueryable();
+        this.MasterSongList = Enumerable.Empty<SongDTO>().ToList();
+    }
+
 }
