@@ -23,5 +23,12 @@ namespace BandMate.Blazor.Services
 
             return this.mapper.Map<BandDTO>(band);
         }
+
+        public async Task<BandDTO> GetDefaultBand(int accountID)
+        {
+            var band = await this.bandRepository.GetDefaultBand(accountID);
+
+            return this.mapper.Map<BandDTO>(band);
+        }
     }
 }

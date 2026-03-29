@@ -1,4 +1,5 @@
 ﻿@page "/bootstrap-grid-demo"
+@attribute [Authorize]
 @rendermode InteractiveServer
 @using BlazorBootstrap
 @using BlazorBootstrap.Components
@@ -12,7 +13,7 @@
 }
 else
 {
-    <h1 class="text-center">@this.CurrentBand.Name</h1>
+    <h1 class="text-center">@this.CurrentBand?.Name</h1>
     <h2>@Songs.Count() Songs</h2>
 
     <Tabs EnableFadeEffect="false" NavStyle="NavStyle.Pills" Class="mb-3">
@@ -39,7 +40,8 @@ else
     Responsive="true"
     AllowSelection="true"
     @bind-SelectedItems="this.SelectedSongs"
-    SelectionMode="GridSelectionMode.Multiple">
+    SelectionMode="GridSelectionMode.Multiple"
+    AllowDetailView="true">
 
     <GridColumn TItem="SongDTO" HeaderText="Artist" PropertyName="Artist" SortString="Artist" SortKeySelector="item => item.Artist">
         @context.Artist
@@ -77,24 +79,28 @@ else
 </Modal>
 
 @code {
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthState { get; set; } = default!;
+
     private IQueryable<SongDTO> Songs { get; set; } = Enumerable.Empty<SongDTO>().AsQueryable();
     private IEnumerable<SongDTO> MasterSongList { get; set; } = Enumerable.Empty<SongDTO>().ToList();
     private int CurrentSongListTypeID { get; set; } = 0;
     private IEnumerable<SongListTypeDTO> SongListTypes { get; set; } = Enumerable.Empty<SongListTypeDTO>().ToList();
-    private int currentBandID { get; set; } = 2; //TODO: Get from auth context or url
+    private int CurrentBandID { get; set; } = 0; //TODO: Get from auth context or url
     private bool IsLoading { get; set; } = true;
     private HashSet<SongDTO> SelectedSongs = new();
     private Grid<SongDTO> CurrentGrid = new();
     private Modal RemoveSongModal = new();
     private SongDTO CurrentSelectedSong { get; set; } = new();
     private BandDTO CurrentBand { get; set; } = new();
+    public int CurrentAccountID { get; set; } = 0;
 
     private async Task<GridDataProviderResult<SongDTO>> SongDataProvider(GridDataProviderRequest<SongDTO> request)
     {
         this.Songs = this.MasterSongList.ToList().AsQueryable();
         if (!this.Songs.Any())
         {
-            this.Songs = (await this.SongService.GetSongsByBandIDAsync(this.currentBandID)).AsQueryable();
+            this.Songs = (await this.SongService.GetSongsByBandIDAsync(this.CurrentBandID)).AsQueryable();
             this.MasterSongList = this.Songs.ToList();
         }
 
@@ -114,12 +120,32 @@ else
     {
         if (firstRender)
         {
-            this.MasterSongList = (await this.SongService.GetSongsByBandIDAsync(this.currentBandID)).ToList();
-            this.SongListTypes = (await this.SongListTypeService.GetBandIDAsync(this.currentBandID)).ToList();
+            var currentAccountID = await this.GetCurrentAccountID();
+
+            this.CurrentBand = await this.BandService.GetDefaultBand(currentAccountID);//await this.BandService.GetBand(this.currentBandID);
+            this.CurrentBandID = this.CurrentBand?.BandID ?? 0;
+
+            this.MasterSongList = (await this.SongService.GetSongsByBandIDAsync(this.CurrentBandID)).ToList();
+            this.SongListTypes = (await this.SongListTypeService.GetBandIDAsync(this.CurrentBandID)).ToList();
             this.CurrentSongListTypeID = this.SongListTypes.FirstOrDefault()?.SongListTypeID ?? 0;
-            this.CurrentBand = await this.BandService.GetBand(this.currentBandID);
+
             this.StateHasChanged();
         }
+    }
+
+    private async Task<int> GetCurrentAccountID()
+    {
+        var authState = await this.AuthState;
+        var user = authState.User;
+        if (user.Identity?.IsAuthenticated ?? false)
+        {
+            var accountIDClaim = user.Claims.FirstOrDefault(c => c.Type == "AccountID");
+            if (accountIDClaim != null && int.TryParse(accountIDClaim.Value, out int accountID))
+            {
+                return accountID;
+            }
+        }
+        return 0;
     }
 
     private async Task OnSongListTypeChanged(int songListTypeID)

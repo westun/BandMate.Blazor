@@ -24,4 +24,8 @@
     <ProjectReference Include="..\BandMate.Domain\BandMate.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\lib\bootstrap\dist\js\" />
+  </ItemGroup>
+
 </Project>

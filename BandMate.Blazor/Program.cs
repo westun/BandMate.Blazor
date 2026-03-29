@@ -1,3 +1,4 @@
+using BandMate.Blazor.Authentication;
 using BandMate.Blazor.Components;
 using BandMate.Blazor.Components.Account;
 using BandMate.Blazor.Configuration;
@@ -42,7 +43,8 @@ namespace BandMate.Blazor
                 })
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddSignInManager()
-                .AddDefaultTokenProviders();
+                .AddDefaultTokenProviders()
+                .AddClaimsPrincipalFactory<AdditionalUserClaimsPrincipalFactory>();
 
             builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
