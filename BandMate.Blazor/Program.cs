@@ -3,6 +3,7 @@ using BandMate.Blazor.Components;
 using BandMate.Blazor.Components.Account;
 using BandMate.Blazor.Configuration;
 using BandMate.Blazor.Data;
+using BandMate.Blazor.Middleware;
 using BandMate.Domain.Persistence;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -83,6 +84,21 @@ namespace BandMate.Blazor
 
             // Add additional endpoints required by the Identity /Account Razor components.
             app.MapAdditionalIdentityEndpoints();
+
+            // 2. Only run the EmailCheckMiddleware on actual page requests
+            app.UseWhen(context =>
+                // Only run if it's a GET request (standard page load)
+                context.Request.Method == HttpMethods.Get &&
+                // Ignore internal Blazor SignalR and framework paths
+                !context.Request.Path.StartsWithSegments("/_blazor") &&
+                !context.Request.Path.StartsWithSegments("/_framework") &&
+                !context.Request.Path.StartsWithSegments("/account") &&
+                // Ignore common static file extensions
+                !Path.HasExtension(context.Request.Path.Value),
+                appBuilder =>
+                {
+                    appBuilder.UseMiddleware<BandIdInRouteCheckMiddleware>();
+                });
 
             app.Run();
         }
