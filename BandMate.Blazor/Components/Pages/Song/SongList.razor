@@ -1,8 +1,6 @@
 ﻿@page "/song/list";
 @attribute [Authorize]
 @rendermode InteractiveServer
-@using BlazorBootstrap
-@using BlazorBootstrap.Components
 @inject ISongService SongService
 @inject ISongListTypeService SongListTypeService
 @inject IBandService BandService
@@ -83,9 +81,6 @@ else
     [CascadingParameter]
     private Task<AuthenticationState> AuthState { get; set; } = default!;
 
-    [Parameter]
-    public int BandID { get; set; }
-
     private IEnumerable<SongDTO> Songs { get; set; } = Enumerable.Empty<SongDTO>();
     private IEnumerable<SongDTO> MasterSongList { get; set; } = Enumerable.Empty<SongDTO>();
 
@@ -104,8 +99,6 @@ else
     
     private SongDTO CurrentSelectedSong { get; set; } = new();
     
-    public int CurrentAccountID { get; set; } = 0;
-
     private async Task<GridDataProviderResult<SongDTO>> SongDataProvider(GridDataProviderRequest<SongDTO> request)
     {
         this.Songs = this.MasterSongList.ToList();
