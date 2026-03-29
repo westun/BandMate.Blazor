@@ -34,7 +34,7 @@ namespace BandMate.Domain.Persistence.Repositories
             }
 
             dbContext.Accounts.Add(account);
-            dbContext.SaveChanges();
+            await dbContext.SaveChangesAsync();
 
             return account;
         }

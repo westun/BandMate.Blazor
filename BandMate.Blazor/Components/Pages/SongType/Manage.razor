@@ -1,0 +1,193 @@
+﻿@page "/songtype/manage";
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject ISongListTypeService SongListTypeService
+@inject IBandService BandService
+
+@if (this.IsLoading)
+{
+    <div class="mb-3">
+        <Spinner Type="SpinnerType.Dots" Color="SpinnerColor.Primary" Size="SpinnerSize.ExtraLarge" />
+    </div>
+}
+else
+{
+    <h1 class="text-center">Song Types</h1>
+
+    <Alert Color="AlertColor.Info">Drag and drop song types to change the order.</Alert>
+
+    <div class="row">
+        <div class="col-md-6">
+            <SortableList TItem="SongListTypeDTO"
+                          Data="SongListTypes.ToList()"
+                          Context="songType"
+                          OnUpdate="OnSortableListUpdate">
+                <ItemTemplate>
+                    <div class="row">
+                        <div class="col-md-1">
+                            @(SongListTypes.IndexOf(songType) + 1))
+                        </div>
+                        <div class="col-md-6">
+                            <TextInput @bind-Value="@songType.ListTypeName" />
+                            @* <ValidationMessage For="@(() => songType.ListTypeName)" /> *@
+                        </div>
+                        <div class="col-md-5">
+                            <Button Color="ButtonColor.Success" Size="ButtonSize.Small" @onclick="() => OnCreateSongTypeClick(songType)">Save</Button>
+                            <Button Color="ButtonColor.Danger" Size="ButtonSize.Small" @onclick="() => OnSelectSongTypeForRemoval(songType)">Remove</Button>
+                        </div>
+                    </div>
+                </ItemTemplate>
+            </SortableList>
+        </div>
+    </div>
+    <div class="mt-3">
+        <Button Color="ButtonColor.Primary" Size="ButtonSize.Large" @onclick="() => OnAddNewTypeClick()">Add New Type</Button>
+    </div>
+}
+
+<Modal @ref="RemoveSongTypeModal" Title="Are you sure?" OnHidden="OnHideRemoveSongTypeModalClick">
+    <BodyTemplate>
+        Are you sure you want to remove the song type: @this.SelectedSongType?.ListTypeName
+    </BodyTemplate>
+    <FooterTemplate>
+        <Button Color="ButtonColor.Secondary" @onclick="OnHideRemoveSongTypeModalClick">Cancel</Button>
+        <Button Color="ButtonColor.Danger" @onclick="OnRemoveSongTypeClick">Remove</Button>
+    </FooterTemplate>
+</Modal>
+
+<Toasts class="p-3" Messages="ToastMessages" Placement="ToastsPlacement.TopRight" AutoHide="true" />
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    private List<SongListTypeDTO> SongListTypes { get; set; } = Enumerable.Empty<SongListTypeDTO>().ToList();
+
+    private Modal RemoveSongTypeModal = new();
+
+    private SongListTypeDTO SelectedSongType { get; set; } = new();
+
+    private bool IsLoading { get; set; } = true;
+
+    private int CurrentBandID { get; set; }
+
+    List<ToastMessage> ToastMessages = new List<ToastMessage>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var currentAccountID = await this.GetCurrentAccountID();
+
+        var currentBand = await this.BandService.GetDefaultBand(currentAccountID);
+        this.CurrentBandID = currentBand?.BandID ?? 0;
+
+        this.SongListTypes = (await this.SongListTypeService.GetBandIDAsync(this.CurrentBandID)).ToList();
+
+        this.IsLoading = false;
+    }
+
+    private async Task<int> GetCurrentAccountID()
+    {
+        var authState = await this.AuthState;
+        var user = authState.User;
+        if (user.Identity?.IsAuthenticated ?? false)
+        {
+            var accountIDClaim = user.Claims.FirstOrDefault(c => c.Type == "AccountID");
+            if (accountIDClaim != null && int.TryParse(accountIDClaim.Value, out int accountID))
+            {
+                return accountID;
+            }
+        }
+        return 0;
+    }
+
+    private async Task OnSortableListUpdate(SortableListEventArgs args)
+    {
+        //this needs some work
+        if (string.IsNullOrWhiteSpace(this.SongListTypes.LastOrDefault().ListTypeName))
+        {
+            //do not allow stub items to be moved
+            return;
+        }
+
+        var itemToMove = this.SongListTypes[args.OldIndex];
+
+        this.SongListTypes.RemoveAt(args.OldIndex);
+
+        if (args.NewIndex < this.SongListTypes.Count)
+            this.SongListTypes.Insert(args.NewIndex, itemToMove);
+        else
+            this.SongListTypes.Add(itemToMove);
+
+        //consider sort order 
+
+
+    }
+
+    private async Task OnHideRemoveSongTypeModalClick()
+    {
+        this.ClearSelectedSongType();
+        await this.RemoveSongTypeModal.HideAsync();
+    }
+
+    private async Task OnSelectSongTypeForRemoval(SongListTypeDTO songTypeDTO)
+    {
+        this.SelectedSongType = songTypeDTO;
+        await this.RemoveSongTypeModal.ShowAsync();
+    }
+
+    private async Task OnRemoveSongTypeClick()
+    {
+        //TODO: remove song type in db
+
+        //TODO: move songs in removed typed to selected song type   
+
+        await this.RemoveSongTypeModal.HideAsync();
+
+        this.ToastMessages.Add(new ToastMessage
+        {
+            Type = ToastType.Danger,
+            Message = $"{this.SelectedSongType.ListTypeName} was removed.",
+        });
+
+        this.ClearSelectedSongType();
+    }
+
+    private void ClearSelectedSongType()
+    {
+        this.SelectedSongType = new();
+    }
+
+    private async Task OnAddNewTypeClick()
+    {
+        this.SongListTypes.Add(new SongListTypeDTO());
+    }
+
+    private async Task OnCreateSongTypeClick(SongListTypeDTO songTypeDTO)
+    {
+        await this.SaveSongType(songTypeDTO);
+
+        this.ToastMessages.Add(new ToastMessage
+        {
+            Type = ToastType.Success,
+            Message = $"{songTypeDTO.ListTypeName} was succesfully saved.",
+        });
+    }
+
+    private async Task SaveSongType(SongListTypeDTO songTypeDTO)
+    {
+        songTypeDTO.BandID = this.CurrentBandID;
+        songTypeDTO.SortOrder = this.SongListTypes.IndexOf(songTypeDTO) + 1;
+
+        if (songTypeDTO.SongListTypeID > 0)
+        {
+            var songTypeFromDB = await this.SongListTypeService.UpdateAsync(songTypeDTO);
+        }
+        else
+        {
+            var songTypeDTOWithID = await this.SongListTypeService.CreateAsync(songTypeDTO);
+            var index = this.SongListTypes.IndexOf(songTypeDTO);
+            var songToUpdate = this.SongListTypes[index];
+            songToUpdate.SongListTypeID = songTypeDTOWithID.SongListTypeID;
+        }
+    }
+}
