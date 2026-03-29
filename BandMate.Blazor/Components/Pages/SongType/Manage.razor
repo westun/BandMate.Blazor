@@ -118,9 +118,12 @@ else
         else
             this.SongListTypes.Add(itemToMove);
 
-        //consider sort order 
+        this.UpdateSongTypesSortOrder();
 
-
+        foreach (var songType in this.SongListTypes)
+        {
+            await this.SaveSongType(songType);
+        }
     }
 
     private async Task OnHideRemoveSongTypeModalClick()
@@ -152,9 +155,18 @@ else
             Message = $"{this.SelectedSongType.ListTypeName} was removed.",
         });
 
-        //update sort order
+        this.UpdateSongTypesSortOrder();
 
         this.ClearSelectedSongType();
+    }
+
+    private void UpdateSongTypesSortOrder()
+    {
+        for (int i = 0; i < this.SongListTypes.Count; i++)
+        {
+            var songType = this.SongListTypes[i];
+            songType.SortOrder = i + 1;
+        }
     }
 
     private void ClearSelectedSongType()
