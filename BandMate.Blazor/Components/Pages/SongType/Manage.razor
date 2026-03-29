@@ -23,19 +23,23 @@ else
                           Context="songType"
                           OnUpdate="OnSortableListUpdate">
                 <ItemTemplate>
-                    <div class="row">
-                        <div class="col-md-1">
-                            @(SongListTypes.IndexOf(songType) + 1))
+                    <EditForm Model="songType" OnValidSubmit="() => OnCreateSongTypeClick(songType)">
+                        <DataAnnotationsValidator />
+
+                        <div class="row">
+                            <div class="col-md-1">
+                                @(SongListTypes.IndexOf(songType) + 1))
+                            </div>
+                            <div class="col-md-6">
+                                    <TextInput @bind-Value="@songType.ListTypeName" />
+                                    <ValidationMessage For="@(() => songType.ListTypeName)" />
+                            </div>
+                            <div class="col-md-5">
+                                <Button Type="ButtonType.Submit" Color="ButtonColor.Success" Size="ButtonSize.Small">Save</Button>
+                                <Button Color="ButtonColor.Danger" Size="ButtonSize.Small" @onclick="() => OnSelectSongTypeForRemoval(songType)">Remove</Button>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <TextInput @bind-Value="@songType.ListTypeName" />
-                            @* <ValidationMessage For="@(() => songType.ListTypeName)" /> *@
-                        </div>
-                        <div class="col-md-5">
-                            <Button Color="ButtonColor.Success" Size="ButtonSize.Small" @onclick="() => OnCreateSongTypeClick(songType)">Save</Button>
-                            <Button Color="ButtonColor.Danger" Size="ButtonSize.Small" @onclick="() => OnSelectSongTypeForRemoval(songType)">Remove</Button>
-                        </div>
-                    </div>
+                    </EditForm>
                 </ItemTemplate>
             </SortableList>
         </div>
