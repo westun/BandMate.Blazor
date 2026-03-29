@@ -63,7 +63,7 @@ else
     <GridColumn TItem="SongDTO" HeaderText="Actions">
         <Button Color="ButtonColor.Danger"
                 Class="ms-2"
-                @onclick="() => this.OnConfirmRemoveSongClick(context)">
+                @onclick="() => this.OnConfirmRemoveSongClick(context)" title="Remove Song">
             <Icon Name="IconName.Trash" />
         </Button>
     </GridColumn>
