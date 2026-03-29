@@ -23,7 +23,7 @@ else
                           Context="songType"
                           OnUpdate="OnSortableListUpdate">
                 <ItemTemplate>
-                    <EditForm Model="songType" OnValidSubmit="() => OnCreateSongTypeClick(songType)">
+                    <EditForm Model="songType" OnValidSubmit="() => OnCreateSongTypeClick(songType)" FormName="@($"form-{SongListTypes.IndexOf(songType)}")">
                         <DataAnnotationsValidator />
 
                         <div class="row">
