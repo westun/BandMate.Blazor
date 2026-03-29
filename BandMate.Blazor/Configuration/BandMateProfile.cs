@@ -11,6 +11,7 @@ namespace BandMate.Blazor.Configuration
             this.CreateMap<Song, SongDTO>().ReverseMap();
             this.CreateMap<SongListType, SongListTypeDTO>().ReverseMap();
             this.CreateMap<Band, BandDTO>().ReverseMap();
+            this.CreateMap<Account, AccountDTO>().ReverseMap();
         }
     }
 }

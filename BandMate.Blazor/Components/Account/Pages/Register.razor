@@ -14,6 +14,7 @@
 @inject ILogger<Register> Logger
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
+@inject IAccountService AccountService
 
 <PageTitle>Register</PageTitle>
 
@@ -65,8 +66,17 @@
 
     private string? Message => identityErrors is null ? null : $"Error: {string.Join(", ", identityErrors.Select(error => error.Description))}";
 
-    protected override void OnInitialized()
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
     {
+        var user = (await AuthState).User;
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            NavigationManager.NavigateTo("/");
+        }
+
         Input ??= new();
     }
 
@@ -74,7 +84,13 @@
     {
         var user = CreateUser();
 
-        user.AccountID = 3; //test record in db
+        var newAccount = await this.AccountService.CreateAsync(new AccountDTO
+        {
+            Email = Input.Email,
+            Username = Input.Email,
+        });
+
+        user.AccountID = newAccount.AccountID;
 
         await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
         var emailStore = GetEmailStore();
