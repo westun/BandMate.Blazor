@@ -42,5 +42,10 @@ namespace BandMate.Blazor.Services
 
             return this.mapper.Map<SongListTypeDTO>(songListTypeFromDatabase);
         }
+
+        public async Task DeleteAsync(int id)
+        {
+            await this.songListTypeRepository.DeleteAsync(id);
+        }
     }
 }

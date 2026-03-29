@@ -137,9 +137,12 @@ else
 
     private async Task OnRemoveSongTypeClick()
     {
-        //TODO: remove song type in db
-
         //TODO: move songs in removed typed to selected song type   
+
+        await this.SongListTypeService.DeleteAsync(this.SelectedSongType.SongListTypeID);
+
+        var indexToRemove = this.SongListTypes.IndexOf(this.SelectedSongType);
+        this.SongListTypes.RemoveAt(indexToRemove);
 
         await this.RemoveSongTypeModal.HideAsync();
 
@@ -148,6 +151,8 @@ else
             Type = ToastType.Danger,
             Message = $"{this.SelectedSongType.ListTypeName} was removed.",
         });
+
+        //update sort order
 
         this.ClearSelectedSongType();
     }

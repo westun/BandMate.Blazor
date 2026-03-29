@@ -51,5 +51,19 @@ namespace BandMate.Domain.Persistence.Repositories
 
             return songType;
         }
+
+        public async Task DeleteAsync(int id)
+        {
+            using var dbContext = await dbContextFactory.CreateDbContextAsync();
+
+            var songType = await dbContext.SongListTypes
+                .FirstOrDefaultAsync(s => id == s.SongListTypeID);
+
+            if (songType != null)
+            {
+                dbContext.SongListTypes.Remove(songType);
+                await dbContext.SaveChangesAsync();
+            }
+        }
     }
 }
