@@ -1,4 +1,4 @@
-﻿@page "/bootstrap-grid-demo"
+﻿@page "/song/list";
 @attribute [Authorize]
 @rendermode InteractiveServer
 @using BlazorBootstrap
@@ -82,11 +82,14 @@ else
     [CascadingParameter]
     private Task<AuthenticationState> AuthState { get; set; } = default!;
 
+    [Parameter]
+    public int BandID { get; set; }
+
     private IQueryable<SongDTO> Songs { get; set; } = Enumerable.Empty<SongDTO>().AsQueryable();
     private IEnumerable<SongDTO> MasterSongList { get; set; } = Enumerable.Empty<SongDTO>().ToList();
     private int CurrentSongListTypeID { get; set; } = 0;
     private IEnumerable<SongListTypeDTO> SongListTypes { get; set; } = Enumerable.Empty<SongListTypeDTO>().ToList();
-    private int CurrentBandID { get; set; } = 0; //TODO: Get from auth context or url
+    private int CurrentBandID { get; set; } = 0;
     private bool IsLoading { get; set; } = true;
     private HashSet<SongDTO> SelectedSongs = new();
     private Grid<SongDTO> CurrentGrid = new();
