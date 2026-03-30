@@ -17,7 +17,9 @@ else
     
     <div class="mb-3">
         <Button Color="ButtonColor.Primary">Create New Song</Button>
-        <Button Color="ButtonColor.Primary">Search Music Catalog <span class="bi bi-music-note-beamed" aria-hidden="true"></span></Button>
+        <Button Color="ButtonColor.Info" @onclick="() => OnSearchMusicCatalogClick()" >
+            Search Music Catalog <span class="bi bi-music-note-beamed" aria-hidden="true"></span>
+        </Button>
     </div>
     
     <h2>@Songs.Count() Songs</h2>
@@ -82,6 +84,14 @@ else
     </FooterTemplate>
 </Modal>
 
+<Modal @ref="MusicSearchModal" Title="Search Music Catalog" OnHidden="OnHideMusicSearchModalClick">
+    <BodyTemplate>
+        <MusicCatalogSearch></MusicCatalogSearch>
+    </BodyTemplate>
+    <FooterTemplate>
+    </FooterTemplate>
+</Modal>
+
 @code {
     [CascadingParameter]
     private Task<AuthenticationState> AuthState { get; set; } = default!;
@@ -101,7 +111,8 @@ else
     
     private Grid<SongDTO> CurrentGrid = new();
     private Modal RemoveSongModal = new();
-    
+    private Modal MusicSearchModal = new();
+
     private SongDTO CurrentSelectedSong { get; set; } = new();
     
     private async Task<GridDataProviderResult<SongDTO>> SongDataProvider(GridDataProviderRequest<SongDTO> request)
@@ -197,4 +208,13 @@ else
         this.MasterSongList = Enumerable.Empty<SongDTO>();
     }
 
+    private async Task OnHideMusicSearchModalClick()
+    {
+        await this.MusicSearchModal.HideAsync();
+    }
+
+    private async Task OnSearchMusicCatalogClick()
+    {
+        await this.MusicSearchModal.ShowAsync();
+    }   
 }

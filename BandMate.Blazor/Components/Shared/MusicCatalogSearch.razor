@@ -1,0 +1,49 @@
+﻿@rendermode InteractiveServer
+@inject IBandService BandService
+
+@if (this.IsLoading)
+{
+    <div class="mb-3">
+        <Spinner Type="SpinnerType.Dots" Color="SpinnerColor.Primary" Size="SpinnerSize.ExtraLarge" />
+    </div>
+}
+else
+{
+    <h1 class="text-center">Music Catalog Search</h1>
+    <!--  create a search textbox here form inline-->
+    
+}
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    private int CurrentBandID { get; set; } = 0;
+    private BandDTO CurrentBand { get; set; } = new();
+    
+    private bool IsLoading { get; set; } = true;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        var currentAccountID = await this.GetCurrentAccountID();
+
+        this.CurrentBand = await this.BandService.GetDefaultBand(currentAccountID);
+        this.CurrentBandID = this.CurrentBand?.BandID ?? 0;
+
+        this.IsLoading = false;
+    }
+
+    private async Task<int> GetCurrentAccountID()
+    {
+        var authState = await this.AuthState;
+        var user = authState.User;
+        if (user.Identity?.IsAuthenticated ?? false)
+        {
+            var accountIDClaim = user.Claims.FirstOrDefault(c => c.Type == "AccountID");
+            if (accountIDClaim != null && int.TryParse(accountIDClaim.Value, out int accountID))
+            {
+                return accountID;
+            }
+        }
+        return 0;
+    }
+}
