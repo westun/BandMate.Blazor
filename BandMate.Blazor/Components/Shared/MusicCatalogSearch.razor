@@ -1,6 +1,9 @@
 ﻿@using System.ComponentModel.DataAnnotations
+@using BandMate.MusicCatalog.Models
+@using BandMate.MusicCatalog.Persistence
 @rendermode InteractiveServer
 @inject IBandService BandService
+@inject IArtistRepository ArtistRepository
 
 @if (this.IsLoading)
 {
@@ -12,7 +15,7 @@ else
 {
     <h1 class="text-center">Music Catalog Search</h1>
     <!--  create a search textbox here form inline-->
-    <EditForm Model="SearchRequest" OnValidSubmit="() => OnSearchForArtist()">
+    <EditForm Model="SearchRequest" OnValidSubmit="() => this.OnSearchForArtist()">
         <DataAnnotationsValidator />
         <div class="row row-cols-lg-auto g-3 align-items-center">
             <div class="col-12">
@@ -27,18 +30,44 @@ else
             </div>
         </div>
     </EditForm>
+
+    @if (this.ArtistSearchResults.Any())
+    {
+        <div class="row mt-3">
+            <p>
+                <span class="fs-3">Select an artist:</span>
+            </p>
+            @foreach (var artist in ArtistSearchResults)
+            {
+                <div class="col-md-6">
+                    <div style="cursor:pointer;" class="card mb-3" @key="artist.Id" @onclick="() => this.OnSelectArtist(artist)">
+                        <img src="@artist.ImageUrl" class="card-img-top" alt="Band Name">
+                        <div class="card-body">
+                            <h5 class="card-title">@artist.Name</h5>
+                            @* <p class="card-text">Classic rock legends from London.</p>
+                            <a href="#" class="btn btn-primary">View Profile</a> *@
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
 }
+
 @code {
     [CascadingParameter]
     private Task<AuthenticationState> AuthState { get; set; } = default!;
 
     private int CurrentBandID { get; set; } = 0;
     private BandDTO CurrentBand { get; set; } = new();
-    
+
     private bool IsLoading { get; set; } = true;
 
     private MusicSearchRequest SearchRequest { get; set; } = new();
-    
+
+    IEnumerable<Artist> ArtistSearchResults { get; set; } = Enumerable.Empty<Artist>();
+    IEnumerable<Album> AlbumSearchResults { get; set; } = Enumerable.Empty<Album>();
+
     protected override async Task OnInitializedAsync()
     {
         var currentAccountID = await this.GetCurrentAccountID();
@@ -66,7 +95,26 @@ else
 
     private async Task OnSearchForArtist()
     {
+        ToggleLoading(loading: true);
 
+        this.ArtistSearchResults = await this.ArtistRepository.SearchArtistsAsync(this.SearchRequest.Criteria);
+
+        ToggleLoading(loading: false);
+    }
+
+    private async Task OnSelectArtist(Artist artist)
+    {
+        ToggleLoading(loading: true);
+
+        this.AlbumSearchResults = await this.ArtistRepository.GetAlbums(artist.Id);
+
+        ToggleLoading(loading: false);
+    }
+
+    private void ToggleLoading(bool loading)
+    {
+        this.IsLoading = loading;
+        this.StateHasChanged();
     }
     
     public class MusicSearchRequest
