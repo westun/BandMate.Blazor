@@ -14,8 +14,13 @@
 else
 {
     <h1 class="text-center">@this.CurrentBand?.Name</h1>
+    
+    <div class="mb-3">
+        <Button Color="ButtonColor.Primary">Create New Song</Button>
+        <Button Color="ButtonColor.Primary">Search Music Catalog <span class="bi bi-music-note-beamed" aria-hidden="true"></span></Button>
+    </div>
+    
     <h2>@Songs.Count() Songs</h2>
-
     <Tabs EnableFadeEffect="false" NavStyle="NavStyle.Pills" Class="mb-3">
         @foreach (var songListType in this.SongListTypes)
         {
