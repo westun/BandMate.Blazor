@@ -1,4 +1,5 @@
-﻿@rendermode InteractiveServer
+﻿@using System.ComponentModel.DataAnnotations
+@rendermode InteractiveServer
 @inject IBandService BandService
 
 @if (this.IsLoading)
@@ -11,7 +12,21 @@ else
 {
     <h1 class="text-center">Music Catalog Search</h1>
     <!--  create a search textbox here form inline-->
-    
+    <EditForm Model="SearchRequest" OnValidSubmit="() => OnSearchForArtist()">
+        <DataAnnotationsValidator />
+        <div class="row row-cols-lg-auto g-3 align-items-center">
+            <div class="col-12">
+                <label class="form-label">Search Artist:</label>
+            </div>
+            <div class="col-12">
+                <TextInput @bind-Value="SearchRequest.Criteria" />
+                <ValidationMessage For="@(() => SearchRequest.Criteria)" />
+            </div>
+            <div class="col-12">
+                <Button Type="ButtonType.Submit" Color="ButtonColor.Primary">Search</Button>
+            </div>
+        </div>
+    </EditForm>
 }
 @code {
     [CascadingParameter]
@@ -21,6 +36,8 @@ else
     private BandDTO CurrentBand { get; set; } = new();
     
     private bool IsLoading { get; set; } = true;
+
+    private MusicSearchRequest SearchRequest { get; set; } = new();
     
     protected override async Task OnInitializedAsync()
     {
@@ -45,5 +62,16 @@ else
             }
         }
         return 0;
+    }
+
+    private async Task OnSearchForArtist()
+    {
+
+    }
+    
+    public class MusicSearchRequest
+    {
+        [Required(ErrorMessage = "Search Criteria is required")]
+        public string Criteria { get; set; } = string.Empty;
     }
 }
