@@ -21,12 +21,32 @@ namespace BandMate.Domain.Persistence.Repositories
                 .FirstOrDefaultAsync(b => bandID == b.BandID);
         }
 
-        public async Task<Band> GetDefaultBand(int accountID)
+        public async Task<IEnumerable<Band>> GetAllAsync(int accountID)
+        {
+            using var dbContext = await dbContextFactory.CreateDbContextAsync();
+
+            return await dbContext.BandAccounts.Where(ba => ba.AccountID == accountID)
+                .Include(ba => ba.Band)
+                .Select(ba => ba.Band)
+                .ToListAsync();
+        }
+
+        public async Task<Band> GetDefaultBandAsync(int accountID)
         {
             using var dbContext = await dbContextFactory.CreateDbContextAsync();
 
             return await dbContext.Bands
                 .FirstOrDefaultAsync(b => b.BandAccounts.Any(ba => ba.AccountID == accountID && ba.Default));
+        }
+
+        public async Task<Band> CreateAsync(Band band)
+        {
+            using var dbContext = await dbContextFactory.CreateDbContextAsync();
+
+            dbContext.Bands.Add(band);
+            await dbContext.SaveChangesAsync();
+
+            return band;
         }
     }
 }

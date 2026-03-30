@@ -1,8 +1,10 @@
 ﻿@page "/band/manage";
+@using System.ComponentModel.DataAnnotations
 @attribute [Authorize]
 @rendermode InteractiveServer
 @inject ISongListTypeService SongListTypeService
 @inject IBandService BandService
+@inject IBandAccountService BandAccountService
 
 @if (this.IsLoading)
 {
@@ -14,22 +16,81 @@ else
 {
     <h1 class="text-center">Manage Band(s)</h1>
 
+    @if(this.Bands.Any())
+    {
+        <h2>Select a band to manage</h2>
+    }
+    <div class="mb-4">
+        @foreach (var band in this.Bands)
+        {
+            var isDefaultBand = this.DefaultBandID == band.BandID;
+
+            <div class="row my-3" @key="@band.BandID">
+                <div class="col-md-3">
+                    <span class="fs-3">@band.Name</span>
+                    @if (isDefaultBand)
+                    {
+                        <br />
+                        <em>(Currently managing)</em>
+                    }
+                </div>
+                <div class="col-md-9">
+                    <Button Color="ButtonColor.Primary"
+                            Class="ms-2"
+                            Disabled="@(isDefaultBand)"
+                            @onclick="() => this.SaveDefaultBand(band)">
+                        Manage
+                    </Button>
+                    <Button Color="ButtonColor.Primary"
+                            Class="ms-2">
+                        Edit Details
+                    </Button>
+                    <Button Color="ButtonColor.Danger"
+                            Class="ms-2">
+                        Remove
+                    </Button>
+                </div>
+            </div>
+        }
+    </div>
+
+    <h2>Create a new band</h2>
+    <EditForm Model="NewCreateBandRequest" OnValidSubmit="() => OnCreateBand()">
+        <DataAnnotationsValidator />
+        <div class="row row-cols-lg-auto g-3 align-items-center">
+            <div class="col-12">
+                <label class="visually-hidden">New Band Name:</label>
+                <TextInput @bind-Value="NewCreateBandRequest.Name" />
+                <ValidationMessage For="@(() => NewCreateBandRequest.Name)" />
+            </div>
+            <div class="col-12">
+                <Button Type="ButtonType.Submit" Color="ButtonColor.Primary">Create</Button>
+            </div>
+        </div>
+    </EditForm>
 }
 
 @code {
     [CascadingParameter]
     private Task<AuthenticationState> AuthState { get; set; } = default!;
 
+    private List<BandDTO> Bands { get; set; } = Enumerable.Empty<BandDTO>().ToList();
+
     private bool IsLoading { get; set; } = true;
 
-    private int CurrentBandID { get; set; }
+    private int DefaultBandID { get; set; }
+    private int CurrentAccountID { get; set; }
+
+    private CreateBandRequest NewCreateBandRequest { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
-        var currentAccountID = await this.GetCurrentAccountID();
+        this.CurrentAccountID = await this.GetCurrentAccountID();
 
-        var currentBand = await this.BandService.GetDefaultBand(currentAccountID);
-        this.CurrentBandID = currentBand?.BandID ?? 0;
+        this.Bands = (await this.BandService.GetAll(this.CurrentAccountID)).ToList();
+
+        var currentBand = await this.BandService.GetDefaultBand(this.CurrentAccountID);
+        this.DefaultBandID = currentBand?.BandID ?? 0;
 
         this.IsLoading = false;
     }
@@ -47,5 +108,33 @@ else
             }
         }
         return 0;
+    }
+
+    private async Task OnCreateBand()
+    {
+        var newBand = await this.BandService
+            .CreateAsync(new BandDTO { Name = NewCreateBandRequest.Name }, this.CurrentAccountID);
+
+        //call set default band method that will set new band to 1 and all other bands to 0
+        await this.SaveDefaultBand(newBand);
+
+        this.Bands.Add(newBand);
+
+        this.NewCreateBandRequest.Name = string.Empty;
+    }
+
+    private async Task SaveDefaultBand(BandDTO band)
+    {
+        await this.BandAccountService.SaveDefaultBandAsync(band.BandID, this.CurrentAccountID);
+        this.DefaultBandID = band.BandID;
+
+        this.StateHasChanged();
+    }
+
+    public class CreateBandRequest
+    {
+        [Required(ErrorMessage = "Band name is required.")]
+        [StringLength(100, ErrorMessage = "Name is too long.")]
+        public string Name { get; set; } = string.Empty;
     }
 }

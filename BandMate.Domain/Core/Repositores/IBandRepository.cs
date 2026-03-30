@@ -5,6 +5,8 @@ namespace BandMate.Domain.Core.Repositores
     public interface IBandRepository
     {
         Task<Band> GetAsync(int bandID);
-        Task<Band> GetDefaultBand(int accountID);
+        Task<Band> GetDefaultBandAsync(int accountID);
+        Task<IEnumerable<Band>> GetAllAsync(int accountID);
+        Task<Band> CreateAsync(Band band);
     }
 }
