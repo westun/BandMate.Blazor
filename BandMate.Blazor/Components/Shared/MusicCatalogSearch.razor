@@ -14,8 +14,7 @@
 else
 {
     <h1 class="text-center">Music Catalog Search</h1>
-    <!--  create a search textbox here form inline-->
-    <EditForm Model="SearchRequest" OnValidSubmit="() => this.OnSearchForArtist()">
+    <EditForm Model="SearchRequest" OnValidSubmit="() => this.OnSearchForArtist()" autocomplete="on">
         <DataAnnotationsValidator />
         <div class="row row-cols-lg-auto g-3 align-items-center">
             <div class="col-12">
@@ -31,25 +30,76 @@ else
         </div>
     </EditForm>
 
-    @if (this.ArtistSearchResults.Any())
+    @if (this.ShowArtistsView)
     {
         <div class="row mt-3">
             <p>
                 <span class="fs-3">Select an artist:</span>
             </p>
-            @foreach (var artist in ArtistSearchResults)
+            @foreach (var artist in this.ArtistSearchResults)
             {
-                <div class="col-md-6">
-                    <div style="cursor:pointer;" class="card mb-3" @key="artist.Id" @onclick="() => this.OnSelectArtist(artist)">
+                <div class="col-md-6" @key="artist.Id" @onclick="() => this.OnSelectArtist(artist)">
+                    <div style="cursor:pointer;" class="card mb-3">
                         <img src="@artist.ImageUrl" class="card-img-top" alt="Band Name">
                         <div class="card-body">
                             <h5 class="card-title">@artist.Name</h5>
-                            @* <p class="card-text">Classic rock legends from London.</p>
-                            <a href="#" class="btn btn-primary">View Profile</a> *@
                         </div>
                     </div>
                 </div>
             }
+        </div>
+    }
+
+    @if (this.ShowAlbumView)
+    {
+        <div class="row mt-3">
+            <p>
+                <span class="fs-3">Artist: <strong>@this.SelectedArtist.Name</strong></span>
+            </p>
+            <p>
+                <span class="fs-4">Select an album:</span>
+            </p>
+            @foreach (var album in this.AlbumSearchResults)
+            {
+                <div class="col-md-6" @key="album.Id" @onclick="() => this.OnSelectAlbum(album)"">
+                    <div style="cursor:pointer;" class="card mb-3">
+                        <img src="@album.AlbumImgCoverUrl" class="card-img-top" alt="Band Name">
+                        <div class="card-body">
+                            <h5 class="card-title">@album.Name</h5>
+                            <p class="card-text">Classic rock legends from London.</p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    @if (this.ShowTrackView)
+    {
+        <div class="row mt-3">
+            <p>
+                <span class="fs-3">Artist: @this.SelectedArtist.Name</span>
+            </p>
+            <p>
+                <span class="fs-4">Album: @this.SelectedAlbum.Name</span>
+            </p>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Track Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var track in this.SelectedAlbum.Tracks)
+                    {
+                        <tr @key="track.Id">
+                            <th scope="row">@track.Track_Number</th>
+                            <td>@track.Name</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         </div>
     }
 }
@@ -67,6 +117,13 @@ else
 
     IEnumerable<Artist> ArtistSearchResults { get; set; } = Enumerable.Empty<Artist>();
     IEnumerable<Album> AlbumSearchResults { get; set; } = Enumerable.Empty<Album>();
+
+    public bool ShowArtistsView => this.ArtistSearchResults.Any() && !AlbumSearchResults.Any();
+    public bool ShowAlbumView => this.SelectedArtist.Id != null && this.SelectedAlbum.Id == null;
+    public bool ShowTrackView => SelectedArtist.Id != null && SelectedAlbum.Id != null;
+
+    private Artist SelectedArtist { get; set; } = new();
+    private Album SelectedAlbum { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -95,28 +152,46 @@ else
 
     private async Task OnSearchForArtist()
     {
-        ToggleLoading(loading: true);
+        this.ToggleLoadingState(loading: true);
+
+        this.ClearSearchResults();
 
         this.ArtistSearchResults = await this.ArtistRepository.SearchArtistsAsync(this.SearchRequest.Criteria);
 
-        ToggleLoading(loading: false);
+        this.ToggleLoadingState(loading: false);
     }
 
     private async Task OnSelectArtist(Artist artist)
     {
-        ToggleLoading(loading: true);
+        this.ToggleLoadingState(loading: true);
+
+        this.SelectedArtist = artist;
 
         this.AlbumSearchResults = await this.ArtistRepository.GetAlbums(artist.Id);
 
-        ToggleLoading(loading: false);
+        this.ToggleLoadingState(loading: false);
     }
 
-    private void ToggleLoading(bool loading)
+    private void ToggleLoadingState(bool loading)
     {
         this.IsLoading = loading;
         this.StateHasChanged();
     }
-    
+
+
+    private void ClearSearchResults()
+    {
+        this.ArtistSearchResults = Enumerable.Empty<Artist>();
+        this.AlbumSearchResults = Enumerable.Empty<Album>();
+        this.SelectedArtist = new();
+        this.SelectedAlbum = new();
+    }
+
+    private async Task OnSelectAlbum(Album album)
+    {
+        this.SelectedAlbum = album;
+    }
+
     public class MusicSearchRequest
     {
         [Required(ErrorMessage = "Search Criteria is required")]
