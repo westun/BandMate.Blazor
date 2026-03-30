@@ -58,6 +58,8 @@ namespace BandMate.Blazor
 
             builder.Services.AddBlazorBootstrap();
 
+            builder.Services.ConfigureMusicCatalog(builder);
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

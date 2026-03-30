@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="BandMate.Blazor/BandMate.Blazor.csproj" />
   <Project Path="BandMate.Domain/BandMate.Domain.csproj" />
+  <Project Path="BandMate.MusicCatalog/BandMate.MusicCatalog.csproj" Id="07b06c61-6036-4d85-bcc9-249cc4067bca" />
 </Solution>
