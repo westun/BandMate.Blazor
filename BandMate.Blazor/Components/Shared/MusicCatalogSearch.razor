@@ -54,6 +54,12 @@ else
     {
         <div class="row mt-3">
             <p>
+                <Button Color="ButtonColor.Info" @onclick="() => NavigateBackToArtistView()">
+                    <span class="bi bi-arrow-left-circle"></span>
+                    Go Back To Artists
+                </Button>
+            </p>
+            <p>
                 <span class="fs-3">Artist: <strong>@this.SelectedArtist.Name</strong></span>
             </p>
             <p>
@@ -66,7 +72,7 @@ else
                         <img src="@album.AlbumImgCoverUrl" class="card-img-top" alt="Band Name">
                         <div class="card-body">
                             <h5 class="card-title">@album.Name</h5>
-                            <p class="card-text">Classic rock legends from London.</p>
+                            <p class="card-text">@album.Release_Date</p>
                         </div>
                     </div>
                 </div>
@@ -77,6 +83,12 @@ else
     @if (this.ShowTrackView)
     {
         <div class="row mt-3">
+            <p>
+                <Button Color="ButtonColor.Info" @onclick="() => NavigateBackToAlbumView()">
+                    <span class="bi bi-arrow-left-circle"></span>
+                    Go Back To Albums
+                </Button>
+            </p>
             <p>
                 <span class="fs-3">Artist: @this.SelectedArtist.Name</span>
             </p>
@@ -178,7 +190,6 @@ else
         this.StateHasChanged();
     }
 
-
     private void ClearSearchResults()
     {
         this.ArtistSearchResults = Enumerable.Empty<Artist>();
@@ -190,6 +201,17 @@ else
     private async Task OnSelectAlbum(Album album)
     {
         this.SelectedAlbum = album;
+    }
+
+    private async Task NavigateBackToArtistView()
+    {
+        this.SelectedArtist = new();
+        this.AlbumSearchResults = Enumerable.Empty<Album>();
+    }
+
+    private async Task NavigateBackToAlbumView()
+    {
+        this.SelectedAlbum = new();
     }
 
     public class MusicSearchRequest
