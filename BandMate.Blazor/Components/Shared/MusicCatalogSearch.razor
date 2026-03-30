@@ -67,7 +67,7 @@ else
             </p>
             @foreach (var album in this.AlbumSearchResults)
             {
-                <div class="col-md-6" @key="album.Id" @onclick="() => this.OnSelectAlbum(album)"">
+                <div class="col-md-4" @key="album.Id" @onclick="() => this.OnSelectAlbum(album)"">
                     <div style="cursor:pointer;" class="card mb-3">
                         <img src="@album.AlbumImgCoverUrl" class="card-img-top" alt="Band Name">
                         <div class="card-body">
@@ -90,11 +90,14 @@ else
                 </Button>
             </p>
             <p>
-                <span class="fs-3">Artist: @this.SelectedArtist.Name</span>
+                <span class="fs-3">Artist: <strong>@this.SelectedArtist.Name</strong></span>
             </p>
             <p>
-                <span class="fs-4">Album: @this.SelectedAlbum.Name</span>
+                <span class="fs-4">Album: <strong>@this.SelectedAlbum.Name</strong></span>
             </p>
+            <div class="mb-2">
+                <img src="@SelectedAlbum.AlbumImgCoverUrl" />
+            </div>
             <table class="table table-striped">
                 <thead>
                     <tr>
