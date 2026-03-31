@@ -30,7 +30,7 @@ else
         </div>
     </EditForm>
 
-    @if (this.ShowArtistsView)
+    @if (this.CurrentView == MusicCatalogView.Artists)
     {
         <div class="row mt-3">
             <p>
@@ -50,7 +50,7 @@ else
         </div>
     }
 
-    @if (this.ShowAlbumView)
+    @if (this.CurrentView == MusicCatalogView.Albums)
     {
         <div class="row mt-3">
             <p>
@@ -80,7 +80,7 @@ else
         </div>
     }
 
-    @if (this.ShowTrackView)
+    @if (this.CurrentView == MusicCatalogView.TracksByAlbum)
     {
         <div class="row mt-3">
             <p>
@@ -137,10 +137,7 @@ else
     IEnumerable<Artist> ArtistSearchResults { get; set; } = Enumerable.Empty<Artist>();
     IEnumerable<Album> AlbumSearchResults { get; set; } = Enumerable.Empty<Album>();
 
-    //TODO: update to use ENUMS
-    public bool ShowArtistsView => this.ArtistSearchResults.Any() && !AlbumSearchResults.Any();
-    public bool ShowAlbumView => this.SelectedArtist.Id != null && this.SelectedAlbum.Id == null;
-    public bool ShowTrackView => SelectedAlbum.Id != null;
+    private MusicCatalogView CurrentView { get; set; } = MusicCatalogView.Empty;
 
     private Artist SelectedArtist { get; set; } = new();
     private Album SelectedAlbum { get; set; } = new();
@@ -181,6 +178,8 @@ else
 
         this.ArtistSearchResults = await this.ArtistRepository.SearchArtistsAsync(this.SearchRequest.Criteria);
 
+        this.CurrentView = MusicCatalogView.Artists;
+
         this.ToggleLoadingState(loading: false);
     }
 
@@ -191,6 +190,8 @@ else
         this.SelectedArtist = artist;
 
         this.AlbumSearchResults = await this.ArtistRepository.GetAlbums(artist.Id);
+
+        this.CurrentView = MusicCatalogView.Albums;
 
         this.ToggleLoadingState(loading: false);
     }
@@ -212,17 +213,20 @@ else
     private async Task OnSelectAlbum(Album album)
     {
         this.SelectedAlbum = album;
+        this.CurrentView = MusicCatalogView.TracksByAlbum;
     }
 
     private async Task NavigateBackToArtistView()
     {
         this.SelectedArtist = new();
         this.AlbumSearchResults = Enumerable.Empty<Album>();
+        this.CurrentView = MusicCatalogView.Artists;
     }
 
     private async Task NavigateBackToAlbumView()
     {
         this.SelectedAlbum = new();
+        this.CurrentView = MusicCatalogView.Albums;
     }
 
     private async Task OnSelectTrack(Song track)
