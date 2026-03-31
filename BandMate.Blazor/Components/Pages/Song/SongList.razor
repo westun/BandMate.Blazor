@@ -86,33 +86,38 @@ else
 
 <Modal @ref="MusicSearchModal" Title="Search Music Catalog" OnHidden="OnHideMusicSearchModalClick">
     <BodyTemplate>
-        <MusicCatalogSearch></MusicCatalogSearch>
+        <MusicCatalogSearch OnTrackSelected="HandleTrackSelected"></MusicCatalogSearch>
     </BodyTemplate>
 </Modal>
+
+<Toasts class="p-3" Messages="ToastMessages" Placement="ToastsPlacement.BottomRight" AutoHide="true" />
 
 @code {
     [CascadingParameter]
     private Task<AuthenticationState> AuthState { get; set; } = default!;
 
     private IEnumerable<SongDTO> Songs { get; set; } = Enumerable.Empty<SongDTO>();
-    private IEnumerable<SongDTO> MasterSongList { get; set; } = Enumerable.Empty<SongDTO>();
+    private List<SongDTO> MasterSongList { get; set; } = Enumerable.Empty<SongDTO>().ToList();
 
     private int CurrentSongListTypeID { get; set; } = 0;
     private IEnumerable<SongListTypeDTO> SongListTypes { get; set; } = Enumerable.Empty<SongListTypeDTO>();
 
+    private int CurrentAccountID { get; set; } = 0;
     private int CurrentBandID { get; set; } = 0;
     private BandDTO CurrentBand { get; set; } = new();
-    
+
     private bool IsLoading { get; set; } = true;
-    
+
     private HashSet<SongDTO> SelectedSongs = new();
-    
+
     private Grid<SongDTO> CurrentGrid = new();
     private Modal RemoveSongModal = new();
     private Modal MusicSearchModal = new();
 
     private SongDTO CurrentSelectedSong { get; set; } = new();
-    
+
+    List<ToastMessage> ToastMessages = new List<ToastMessage>();
+
     private async Task<GridDataProviderResult<SongDTO>> SongDataProvider(GridDataProviderRequest<SongDTO> request)
     {
         this.Songs = this.MasterSongList.ToList();
@@ -136,9 +141,9 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        var currentAccountID = await this.GetCurrentAccountID();
+        this.CurrentAccountID = await this.GetCurrentAccountID();
 
-        this.CurrentBand = await this.BandService.GetDefaultBand(currentAccountID);
+        this.CurrentBand = await this.BandService.GetDefaultBand(this.CurrentAccountID);
         this.CurrentBandID = this.CurrentBand?.BandID ?? 0;
 
         this.MasterSongList = (await this.SongService.GetSongsByBandIDAsync(this.CurrentBandID)).ToList();
@@ -203,7 +208,7 @@ else
     private void ClearSongCache()
     {
         this.Songs = Enumerable.Empty<SongDTO>();
-        this.MasterSongList = Enumerable.Empty<SongDTO>();
+        this.MasterSongList = Enumerable.Empty<SongDTO>().ToList();
     }
 
     private async Task OnHideMusicSearchModalClick()
@@ -214,5 +219,28 @@ else
     private async Task OnSearchMusicCatalogClick()
     {
         await this.MusicSearchModal.ShowAsync();
-    }   
+    }  
+
+    private async Task HandleTrackSelected(SongDTO song)
+    {
+        var newSong = await this.SongService.CreateAsync(new SongDTO
+        {
+            BandID = this.CurrentBandID,
+            CreatedByAccountID = this.CurrentAccountID,
+            SongListTypeID = this.CurrentSongListTypeID,
+            Artist = song.Artist,
+            Title = song.Title,
+        });
+
+        var currentSongListTypeName = this.SongListTypes.FirstOrDefault(slt => slt.SongListTypeID == this.CurrentSongListTypeID);
+        this.ToastMessages.Add(new ToastMessage
+        {
+            Type = ToastType.Success,
+            Message = $"{newSong.Title} was succesfully added to {currentSongListTypeName?.ListTypeName}.",
+        });
+
+        this.ClearSongCache();
+        await this.RefreshGrid();
+
+    }
 }

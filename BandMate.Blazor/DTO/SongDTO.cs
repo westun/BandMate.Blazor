@@ -3,6 +3,7 @@
     public class SongDTO
     {
         public int SongID { get; set; }
+        public int BandID { get; set; }
         public int? SongListTypeID { get; set; }
         public string SongListType { get; set; }
         public string Artist { get; set; }
@@ -21,6 +22,6 @@
         public DateTimeOffset CreatedDate { get; set; }
         public string CreatedDateForDisplay { get; set; }
         public string MyNotes { get; set; }
-        public string CreatedByAccountID { get; set; }
+        public int CreatedByAccountID { get; set; }
     }
 }

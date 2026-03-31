@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using BandMate.Blazor.DTO;
+using BandMate.Domain.Core.Models;
 using BandMate.Domain.Core.Repositores;
 
 namespace BandMate.Blazor.Services
@@ -37,6 +38,15 @@ namespace BandMate.Blazor.Services
         public async Task DeleteAsync(int id)
         {
             await this.songRepository.DeleteAsync(id);
+        }
+
+        public async Task<SongDTO> CreateAsync(SongDTO songDTO)
+        {
+            var song = this.mapper.Map<Song>(songDTO);
+
+            var songFromDatabase = await this.songRepository.CreateAsync(song);
+
+            return this.mapper.Map<SongDTO>(songFromDatabase);
         }
     }
 }

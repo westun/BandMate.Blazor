@@ -72,7 +72,7 @@ else
                         <img src="@album.AlbumImgCoverUrl" class="card-img-top" alt="Band Name">
                         <div class="card-body">
                             <h5 class="card-title">@album.Name</h5>
-                            <p class="card-text">@album.Release_Date</p>
+                            <p class="card-text">Release Date: @album.Release_Date</p>
                         </div>
                     </div>
                 </div>
@@ -110,7 +110,11 @@ else
                     {
                         <tr @key="track.Id">
                             <th scope="row">@track.Track_Number</th>
-                            <td>@track.Name</td>
+                            <td>
+                                <Button Type="ButtonType.Link" @onclick="() => OnSelectTrack(track)">
+                                    @track.Name
+                                </Button>
+                            </td>
                         </tr>
                     }
                 </tbody>
@@ -133,12 +137,16 @@ else
     IEnumerable<Artist> ArtistSearchResults { get; set; } = Enumerable.Empty<Artist>();
     IEnumerable<Album> AlbumSearchResults { get; set; } = Enumerable.Empty<Album>();
 
+    //TODO: update to use ENUMS
     public bool ShowArtistsView => this.ArtistSearchResults.Any() && !AlbumSearchResults.Any();
     public bool ShowAlbumView => this.SelectedArtist.Id != null && this.SelectedAlbum.Id == null;
-    public bool ShowTrackView => SelectedArtist.Id != null && SelectedAlbum.Id != null;
+    public bool ShowTrackView => SelectedAlbum.Id != null;
 
     private Artist SelectedArtist { get; set; } = new();
     private Album SelectedAlbum { get; set; } = new();
+
+    [Parameter] 
+    public EventCallback<SongDTO> OnTrackSelected { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -215,6 +223,15 @@ else
     private async Task NavigateBackToAlbumView()
     {
         this.SelectedAlbum = new();
+    }
+
+    private async Task OnSelectTrack(Song track)
+    {
+        await OnTrackSelected.InvokeAsync(new SongDTO
+        {
+            Artist = this.SelectedArtist.Name,
+            Title = track.Name,
+        });
     }
 
     public class MusicSearchRequest

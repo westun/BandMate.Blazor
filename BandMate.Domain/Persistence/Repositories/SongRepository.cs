@@ -1,6 +1,5 @@
 ﻿using BandMate.Domain.Core.Models;
 using BandMate.Domain.Core.Repositores;
-using BandMate.Domain.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace BandMate.Domain.Persistence.Repositories
@@ -43,6 +42,16 @@ namespace BandMate.Domain.Persistence.Repositories
                 dbContext.Songs.Remove(song);
                 await dbContext.SaveChangesAsync();
             }
+        }
+
+        public async Task<Song> CreateAsync(Song song)
+        {
+            using var dbContext = await dbContextFactory.CreateDbContextAsync();
+
+            dbContext.Songs.Add(song);
+            await dbContext.SaveChangesAsync();
+
+            return song;
         }
     }
 }
