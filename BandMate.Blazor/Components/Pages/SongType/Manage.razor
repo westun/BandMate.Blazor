@@ -36,12 +36,10 @@ else
                                     <TextInput @bind-Value="@songType.ListTypeName" />
                                     <ValidationMessage For="@(() => songType.ListTypeName)" />
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-7">
                                 <Button Type="ButtonType.Submit" Color="ButtonColor.Success" Size="ButtonSize.Small">Save</Button>
                                 <Button Color="ButtonColor.Danger" Size="ButtonSize.Small" @onclick="() => OnSelectSongTypeForRemoval(songType)">Remove</Button>
-                            </div>
-                            <div class="col-md-4">
-                                <span class="badge rounded-pill bg-primary">
+                                <span class="badge rounded-pill bg-primary ms-3">
                                     @this.GetSongCountBySongTypeID(songType.SongListTypeID) Songs
                                 </span>
                             </div>
