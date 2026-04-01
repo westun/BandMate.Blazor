@@ -37,6 +37,31 @@ else
     </Tabs>
 }
 
+@if (this.ShowEditPanel)
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm Model="this.TaskOptionsList">
+                <DataAnnotationsValidator />
+                <ValidNativeSelect @bind-Value="this.SelectedTaskOption"
+                                   Label="Select task:">
+                    @foreach (var taskOption in this.TaskOptionsList)
+                    {
+                        <option value="@taskOption.Value">@taskOption.Text</option>
+                    }
+                </ValidNativeSelect>
+            </EditForm>
+        </div>
+    </div>
+
+    @if (SelectedTaskOption == (int)TaskOptions.BulkSongRemoval)
+    {
+        <div class="mb-3">
+            <Button Color="ButtonColor.Primary" @onclick="OnOpenBulkSongRemovalModal">Remove Selected Songs</Button>
+        </div>
+    }
+}
+
 <Grid @ref="CurrentGrid"
       TItem="SongDTO"
       Class="table table-hover table-bordered table-striped"
@@ -90,6 +115,16 @@ else
     </BodyTemplate>
 </Modal>
 
+<Modal @ref="BulkSongRemovalModal" Title="Are you sure?" OnHidden="OnHideBulkSongRemovalModalClick">
+    <BodyTemplate>
+        Are you sure you want to remove the selected songs?
+    </BodyTemplate>
+    <FooterTemplate>
+        <Button Color="ButtonColor.Secondary" @onclick="OnHideBulkSongRemovalModalClick">Cancel</Button>
+        <Button Color="ButtonColor.Danger" @onclick="OnRemoveSelectedBulkSongsClick">Remove</Button>
+    </FooterTemplate>
+</Modal>
+
 <Toasts class="p-3" Messages="ToastMessages" Placement="ToastsPlacement.BottomRight" AutoHide="true" />
 
 @code {
@@ -113,10 +148,16 @@ else
     private Grid<SongDTO> CurrentGrid = new();
     private Modal RemoveSongModal = new();
     private Modal MusicSearchModal = new();
+    private Modal BulkSongRemovalModal = new();
 
     private SongDTO CurrentSelectedSong { get; set; } = new();
 
     List<ToastMessage> ToastMessages = new List<ToastMessage>();
+
+    private bool ShowEditPanel => this.SelectedSongs.Count > 0;
+
+    private List<TaskOption> TaskOptionsList => this.GetTaskOptionList();
+    private int SelectedTaskOption = (int)TaskOptions.Empty;
 
     private async Task<GridDataProviderResult<SongDTO>> SongDataProvider(GridDataProviderRequest<SongDTO> request)
     {
@@ -241,6 +282,65 @@ else
 
         this.ClearSongCache();
         await this.RefreshGrid();
+    }
 
+    
+    private async Task OnHideBulkSongRemovalModalClick()
+    {
+        await this.BulkSongRemovalModal.HideAsync();
+    }
+
+    private async Task OnRemoveSelectedBulkSongsClick()
+    {
+        @foreach (var song in this.SelectedSongs)
+        {
+            await this.SongService.DeleteAsync(song.SongID);
+        }
+
+        await this.BulkSongRemovalModal.HideAsync();
+
+        this.ToastMessages.Add(new ToastMessage
+        {
+            Type = ToastType.Danger,
+            Message = $"The selected songs were succesfully removed.",
+        });
+
+        this.ClearTaskOption();
+
+        this.ClearSongCache();
+        await this.RefreshGrid();
+    }
+
+    private void ClearTaskOption()
+    {
+        this.SelectedTaskOption = (int)TaskOptions.Empty;
+    }
+
+    private async Task OnOpenBulkSongRemovalModal()
+    {
+        await this.BulkSongRemovalModal.ShowAsync();
+    }
+
+    private List<TaskOption> GetTaskOptionList()
+    {
+        return new List<TaskOption>
+        {
+            new TaskOption ()
+            {
+                Text = "Change Song Type",
+                Value = (int)TaskOptions.ChangeSongType
+            },
+            new TaskOption ()
+            {
+                Text = "Bulk Song Removal",
+                Value = (int)TaskOptions.BulkSongRemoval
+            },
+        };
+    }
+
+    private class TaskOption
+    {
+        public string Text { get; set; }
+        public int Value { get; set; }
     }
 }
