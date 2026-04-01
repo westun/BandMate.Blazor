@@ -94,10 +94,18 @@ else
             <p>
                 <span class="fs-3">Artist: <strong>@this.SelectedArtist.Name</strong></span>
             </p>
+            <div class="row row-cols-lg-auto align-items-center mb-2">
+                <div class="col-12">
+                    <label class="form-label">Search for album:</label>
+                </div>
+                <div class="col-12">
+                    <TextInput @bind-Value="this.SearchForAlbumsCriteria" @oninput="OnSearchForAlbums" />
+                </div>
+            </div>
             <p>
                 <span class="fs-4">Select an album:</span>
             </p>
-            @foreach (var album in this.AlbumSearchResults)
+            @foreach (var album in this.AlbumsFilteredBySearch)
             {
                 <div class="col-md-4" @key="album.Id" @onclick="() => this.OnSelectAlbum(album)" ">
                     <div style="cursor:pointer;" class="card mb-3">
@@ -127,6 +135,17 @@ else
                     <img src="@SelectedAlbum.AlbumImgCoverUrl" />
                 </div>
             }
+            @if (this.CurrentView == MusicCatalogView.Tracks)
+            {
+                <div class="row row-cols-lg-auto align-items-center mb-2">
+                    <div class="col-12">
+                        <label class="form-label">Search for track:</label>
+                    </div>
+                    <div class="col-12">
+                        <TextInput @bind-Value="this.SearchForTracksCriteria" @oninput="OnSearchForTrack" />
+                    </div>
+                </div>
+            }
             <table class="table table-striped">
                 <thead>
                     <tr>
@@ -139,7 +158,7 @@ else
                         var tracksToDisplay = new List<Song>();
                         @if (this.CurrentView == MusicCatalogView.Tracks)
                         {
-                            tracksToDisplay = this.SelectedArtistTracks.ToList();
+                            tracksToDisplay = this.TracksFilteredBySearch;
                         }
                         else
                         {
@@ -193,8 +212,19 @@ else
         new SubViewNavItem { Name = "By Track", View = MusicCatalogView.Tracks },
     };
 
-    [Parameter] 
+    [Parameter]
     public EventCallback<SongDTO> OnTrackSelected { get; set; }
+    
+    private string SearchForTracksCriteria { get; set; } = string.Empty;
+    private string SearchForAlbumsCriteria { get; set; } = string.Empty;
+
+    public List<Song> TracksFilteredBySearch => string.IsNullOrWhiteSpace(this.SearchForTracksCriteria)
+        ? this.SelectedArtistTracks.ToList()
+        : this.SelectedArtistTracks.Where(t => t.Name.Contains(this.SearchForTracksCriteria, StringComparison.OrdinalIgnoreCase)).ToList();
+
+    public List<Album> AlbumsFilteredBySearch => string.IsNullOrWhiteSpace(this.SearchForAlbumsCriteria)
+        ? this.AlbumSearchResults.ToList()
+        : this.AlbumSearchResults.Where(t => t.Name.Contains(this.SearchForAlbumsCriteria, StringComparison.OrdinalIgnoreCase)).ToList();
 
     protected override async Task OnInitializedAsync()
     {
@@ -269,6 +299,7 @@ else
     private async Task OnSelectAlbum(Album album)
     {
         this.SelectedAlbum = album;
+        this.SearchForAlbumsCriteria = string.Empty;
         this.CurrentView = MusicCatalogView.TracksByAlbum;
     }
 
@@ -297,7 +328,19 @@ else
     private async Task OnTrackViewSelection(SubViewNavItem subViewNavItem)
     {
         this.CurrentView = subViewNavItem.View;
+        this.SearchForTracksCriteria = string.Empty;
+        this.SearchForAlbumsCriteria = string.Empty;
         this.StateHasChanged();
+    }
+
+    private async Task OnSearchForTrack(ChangeEventArgs e)
+    {
+        this.SearchForTracksCriteria = e.Value?.ToString() ?? string.Empty;
+    }
+
+    private async Task OnSearchForAlbums(ChangeEventArgs e)
+    {
+        this.SearchForAlbumsCriteria = e.Value?.ToString() ?? string.Empty;
     }
 
     public class MusicSearchRequest
