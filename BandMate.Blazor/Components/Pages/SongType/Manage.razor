@@ -32,13 +32,18 @@ else
                             <div class="col-md-1">
                                 @(SongListTypes.IndexOf(songType) + 1))
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                     <TextInput @bind-Value="@songType.ListTypeName" />
                                     <ValidationMessage For="@(() => songType.ListTypeName)" />
                             </div>
-                            <div class="col-md-5">
+                            <div class="col-md-3">
                                 <Button Type="ButtonType.Submit" Color="ButtonColor.Success" Size="ButtonSize.Small">Save</Button>
                                 <Button Color="ButtonColor.Danger" Size="ButtonSize.Small" @onclick="() => OnSelectSongTypeForRemoval(songType)">Remove</Button>
+                            </div>
+                            <div class="col-md-4">
+                                <span class="badge rounded-pill bg-primary">
+                                    @this.GetSongCountBySongTypeID(songType.SongListTypeID) Songs
+                                </span>
                             </div>
                         </div>
                     </EditForm>
@@ -288,6 +293,11 @@ else
     private void ClearSongTypeToMoveToSelection()
     {
         this.SongTypeMoveToDeletedModel = new();
+    }
+
+    private int GetSongCountBySongTypeID(int songTypeID)
+    {
+        return this.Songs.Count(s => s.SongListTypeID == songTypeID);
     }
 
     private class SongTypeModel
