@@ -8,5 +8,6 @@ namespace BandMate.Domain.Core.Repositores
         Task<IEnumerable<Song>> GetByBandIDAsync(int bandID);
         Task DeleteAsync(int id);
         Task<Song> CreateAsync(Song song);
+        Task<Song> UpdateAsync(Song song);
     }
 }

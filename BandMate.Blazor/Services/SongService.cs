@@ -48,5 +48,14 @@ namespace BandMate.Blazor.Services
 
             return this.mapper.Map<SongDTO>(songFromDatabase);
         }
+
+        public async Task<SongDTO> UpdateAsync(SongDTO songDTO)
+        {
+            var song = this.mapper.Map<Song>(songDTO);
+
+            var songFromDatabase = await this.songRepository.UpdateAsync(song);
+
+            return this.mapper.Map<SongDTO>(songFromDatabase);
+        }
     }
 }

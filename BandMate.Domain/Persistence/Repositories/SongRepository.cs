@@ -53,5 +53,22 @@ namespace BandMate.Domain.Persistence.Repositories
 
             return song;
         }
+
+        public async Task<Song> UpdateAsync(Song song)
+        {
+            using var dbContext = await dbContextFactory.CreateDbContextAsync();
+
+            var songFromDB = dbContext.Songs.FirstOrDefault(s => s.SongID == song.SongID);
+            if (songFromDB == null)
+            {
+                throw new Exception("Song not found");
+            }
+
+            songFromDB.SongListTypeID = song.SongListTypeID;
+
+            await dbContext.SaveChangesAsync();
+
+            return songFromDB;
+        }
     }
 }

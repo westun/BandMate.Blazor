@@ -7,5 +7,7 @@ namespace BandMate.Blazor.Services
         Task<IEnumerable<SongDTO>> GetSongsByBandIDAsync(int bandID);
         Task DeleteAsync(int id);
         Task<SongDTO> CreateAsync(SongDTO songDTO);
+
+        Task<SongDTO> UpdateAsync(SongDTO songDTO);
     }
 }
