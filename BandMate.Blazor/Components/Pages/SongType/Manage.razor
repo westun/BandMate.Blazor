@@ -54,21 +54,30 @@ else
 <Modal @ref="RemoveSongTypeModal" Title="Are you sure?" OnHidden="OnHideRemoveSongTypeModalClick">
     <BodyTemplate>
         <p>Are you sure you want to remove the Song Type <strong>@this.SelectedSongType?.ListTypeName</strong>?</p>
-        <p>In order to remove a Song Type, all songs that have this type must be assigned a new Song Type.</p>
-        <EditForm Model="this.SongTypeMoveToDeletedModel" OnValidSubmit="OnRemoveSongTypeClick">
-            <DataAnnotationsValidator />
 
-            <ValidNativeSelect 
-                @bind-Value="this.SongTypeMoveToDeletedModel.SongTypeID" 
-                Label="Select a new song type:">
-                @foreach (var songType in this.SongListTypes.Where(slt => slt.SongListTypeID != this.SelectedSongType.SongListTypeID))
-                {
-                    <option value="@songType.SongListTypeID">@songType.ListTypeName</option>
-                }
-            </ValidNativeSelect>
+        @if (this.SongsToMove.Any())
+        {
+            <p>In order to remove a Song Type, all songs that have this type must be assigned a new Song Type.</p>
+            <EditForm Model="this.SongTypeMoveToDeletedModel" OnValidSubmit="OnRemoveSongTypeClick">
+                <DataAnnotationsValidator />
+
+                <ValidNativeSelect 
+                    @bind-Value="this.SongTypeMoveToDeletedModel.SongTypeID" 
+                    Label="Select a new song type:">
+                    @foreach (var songType in this.SongListTypes.Where(slt => slt.SongListTypeID != this.SelectedSongType.SongListTypeID))
+                    {
+                        <option value="@songType.SongListTypeID">@songType.ListTypeName</option>
+                    }
+                </ValidNativeSelect>
+                <Button Color="ButtonColor.Secondary" @onclick="OnHideRemoveSongTypeModalClick">Cancel</Button>
+                <Button Type="ButtonType.Submit" Color="ButtonColor.Danger">Remove</Button>
+            </EditForm>
+        }
+        else
+        {
             <Button Color="ButtonColor.Secondary" @onclick="OnHideRemoveSongTypeModalClick">Cancel</Button>
-            <Button Type="ButtonType.Submit" Color="ButtonColor.Danger">Remove</Button>
-        </EditForm>
+            <Button Color="ButtonColor.Danger" @onclick="OnRemoveSongTypeClick">Remove</Button>
+        }
     </BodyTemplate>
 </Modal>
 
@@ -91,6 +100,7 @@ else
     List<ToastMessage> ToastMessages = new List<ToastMessage>();
 
     List<SongDTO> Songs { get; set; } = Enumerable.Empty<SongDTO>().ToList();
+    private List<SongDTO> SongsToMove => this.Songs.Where(s => s.SongListTypeID == this.SelectedSongType.SongListTypeID).ToList();
 
     private SongTypeModel SongTypeMoveToDeletedModel { get; set; } = new();
 
