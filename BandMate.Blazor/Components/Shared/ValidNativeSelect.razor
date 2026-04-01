@@ -1,0 +1,80 @@
+﻿@typeparam TValue
+@inherits InputBase<TValue>
+
+<div class="mb-3">
+    @if (!string.IsNullOrEmpty(Label))
+    {
+        <label class="form-label">@Label</label>
+    }
+
+    @* 'CssClass' is provided by InputBase and contains 'is-invalid' if validation fails *@
+    <select class="form-select @CssClass"
+            @bind="CurrentValueAsString">
+        @ChildContent
+    </select>
+
+    @* Display validation message automatically if integrated with EditForm *@
+    <ValidationMessage For="@ValueExpression" />
+</div>
+
+@code {
+    [Parameter] public string? Label { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    // Required for non-string types (e.g., int, Guid, Enums)
+    protected override bool TryParseValueFromString(string? value, out TValue result, out string? validationErrorMessage)
+    {
+        validationErrorMessage = null;
+
+        // 1. Handle String
+        if (typeof(TValue) == typeof(string))
+        {
+            result = (TValue)(object)(value ?? string.Empty);
+            return true;
+        }
+
+        // 2. Handle Integer (int)
+        if (typeof(TValue) == typeof(int))
+        {
+            if (int.TryParse(value, out var res))
+            {
+                result = (TValue)(object)res;
+                return true;
+            }
+            result = default!;
+            validationErrorMessage = $"The {DisplayName ?? FieldIdentifier.FieldName} must be a number.";
+            return false;
+        }
+
+        // 3. Handle Nullable Integer (int?)
+        if (typeof(TValue) == typeof(int?))
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                result = default!;
+                return true;
+            }
+            if (int.TryParse(value, out var res))
+            {
+                result = (TValue)(object)res;
+                return true;
+            }
+            result = default!;
+            validationErrorMessage = "Invalid numeric value.";
+            return false;
+        }
+
+        // 4. Fallback for other types (Guid, Enum, etc.)
+        try
+        {
+            result = (TValue)Convert.ChangeType(value, typeof(TValue))!;
+            return true;
+        }
+        catch
+        {
+            result = default!;
+            validationErrorMessage = $"The {DisplayName ?? FieldIdentifier.FieldName} field is not valid.";
+            return false;
+        }
+    }
+}

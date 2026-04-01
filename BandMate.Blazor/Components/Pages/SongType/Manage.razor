@@ -1,8 +1,10 @@
 ﻿@page "/songtype/manage";
+@using System.ComponentModel.DataAnnotations
 @attribute [Authorize]
 @rendermode InteractiveServer
 @inject ISongListTypeService SongListTypeService
 @inject IBandService BandService
+@inject ISongService SongService
 
 @if (this.IsLoading)
 {
@@ -51,12 +53,23 @@ else
 
 <Modal @ref="RemoveSongTypeModal" Title="Are you sure?" OnHidden="OnHideRemoveSongTypeModalClick">
     <BodyTemplate>
-        Are you sure you want to remove the song type: @this.SelectedSongType?.ListTypeName
+        <p>Are you sure you want to remove the Song Type <strong>@this.SelectedSongType?.ListTypeName</strong>?</p>
+        <p>In order to remove a Song Type, all songs that have this type must be assigned a new Song Type.</p>
+        <EditForm Model="this.SongTypeMoveToDeletedModel" OnValidSubmit="OnRemoveSongTypeClick">
+            <DataAnnotationsValidator />
+
+            <ValidNativeSelect 
+                @bind-Value="this.SongTypeMoveToDeletedModel.SongTypeID" 
+                Label="Select a new song type:">
+                @foreach (var songType in this.SongListTypes.Where(slt => slt.SongListTypeID != this.SelectedSongType.SongListTypeID))
+                {
+                    <option value="@songType.SongListTypeID">@songType.ListTypeName</option>
+                }
+            </ValidNativeSelect>
+            <Button Color="ButtonColor.Secondary" @onclick="OnHideRemoveSongTypeModalClick">Cancel</Button>
+            <Button Type="ButtonType.Submit" Color="ButtonColor.Danger">Remove</Button>
+        </EditForm>
     </BodyTemplate>
-    <FooterTemplate>
-        <Button Color="ButtonColor.Secondary" @onclick="OnHideRemoveSongTypeModalClick">Cancel</Button>
-        <Button Color="ButtonColor.Danger" @onclick="OnRemoveSongTypeClick">Remove</Button>
-    </FooterTemplate>
 </Modal>
 
 <Toasts class="p-3" Messages="ToastMessages" Placement="ToastsPlacement.TopRight" AutoHide="true" />
@@ -77,6 +90,10 @@ else
 
     List<ToastMessage> ToastMessages = new List<ToastMessage>();
 
+    List<SongDTO> Songs { get; set; } = Enumerable.Empty<SongDTO>().ToList();
+
+    private SongTypeModel SongTypeMoveToDeletedModel { get; set; } = new();
+
     protected override async Task OnInitializedAsync()
     {
         var currentAccountID = await this.GetCurrentAccountID();
@@ -85,6 +102,8 @@ else
         this.CurrentBandID = currentBand?.BandID ?? 0;
 
         this.SongListTypes = (await this.SongListTypeService.GetBandIDAsync(this.CurrentBandID)).ToList();
+
+        this.Songs = (await this.SongService.GetSongsByBandIDAsync(this.CurrentBandID)).ToList();
 
         this.IsLoading = false;
     }
@@ -133,6 +152,7 @@ else
     private async Task OnHideRemoveSongTypeModalClick()
     {
         this.ClearSelectedSongType();
+        this.ClearSongTypeToMoveToSelection();
         await this.RemoveSongTypeModal.HideAsync();
     }
 
@@ -144,7 +164,24 @@ else
 
     private async Task OnRemoveSongTypeClick()
     {
-        //TODO: move songs in removed typed to selected song type   
+        var songsToMoveWithUpdateSongTypeId = this.Songs
+            .Where(s => s.SongListTypeID == this.SelectedSongType.SongListTypeID)
+            .Select(s => { s.SongListTypeID = this.SongTypeMoveToDeletedModel.SongTypeID; return s; })
+            .ToList();
+
+        foreach (var song in songsToMoveWithUpdateSongTypeId)
+        {
+            await this.SongService.UpdateAsync(song);
+        }
+
+        if (songsToMoveWithUpdateSongTypeId.Any())
+        {
+            this.ToastMessages.Add(new ToastMessage
+            {
+                Type = ToastType.Success,
+                Message = $"{songsToMoveWithUpdateSongTypeId.Count()} Songs were succesfully moved to their new song type.",
+            });
+        }
 
         await this.SongListTypeService.DeleteAsync(this.SelectedSongType.SongListTypeID);
 
@@ -162,6 +199,7 @@ else
         this.UpdateSongTypesSortOrder();
 
         this.ClearSelectedSongType();
+        this.ClearSongTypeToMoveToSelection();
     }
 
     private void UpdateSongTypesSortOrder()
@@ -210,5 +248,16 @@ else
             var songToUpdate = this.SongListTypes[index];
             songToUpdate.SongListTypeID = songTypeDTOWithID.SongListTypeID;
         }
+    }
+
+    private void ClearSongTypeToMoveToSelection()
+    {
+        this.SongTypeMoveToDeletedModel = new();
+    }
+
+    private class SongTypeModel
+    {
+        [Range(1, int.MaxValue, ErrorMessage = "Please select a song type.")]
+        public int SongTypeID { get; set; } = 0;
     }
 }
