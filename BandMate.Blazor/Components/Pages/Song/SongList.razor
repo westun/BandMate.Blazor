@@ -88,6 +88,21 @@ else
     }
 }
 
+@if (!IsLoading)
+{
+    <div class="row row-cols-lg-auto align-items-center mb-2">
+        <div class="col-12">
+            <label class="form-label">Search:</label>
+        </div>
+        <div class="col-12">
+            <TextInput @bind-Value="this.SearchForSongCriteria" @oninput="OnSearchForSongs" />
+        </div>
+        <div class="col-12">
+            <Button Color="ButtonColor.Primary" @onclick="ClearSearchResults">Clear</Button>
+        </div>
+    </div>
+}
+
 <Grid @ref="CurrentGrid"
       TItem="SongDTO"
       Class="table table-hover table-bordered table-striped"
@@ -186,6 +201,14 @@ else
     private IEnumerable<SongDTO> Songs { get; set; } = Enumerable.Empty<SongDTO>();
     private List<SongDTO> MasterSongList { get; set; } = Enumerable.Empty<SongDTO>().ToList();
 
+    private List<SongDTO> FilteredSongsBySearch => string.IsNullOrWhiteSpace(this.SearchForSongCriteria)
+        ? this.Songs.ToList()
+        : this.Songs.Where(s => 
+            s.Artist.Contains(this.SearchForSongCriteria, StringComparison.OrdinalIgnoreCase)
+            || s.Title.Contains(this.SearchForSongCriteria, StringComparison.OrdinalIgnoreCase)).ToList();
+
+    private string SearchForSongCriteria { get; set; } = string.Empty;
+
     private int CurrentSongListTypeID { get; set; } = 0;
     private IEnumerable<SongListTypeDTO> SongListTypes { get; set; } = Enumerable.Empty<SongListTypeDTO>();
     private SongListTypeDTO CurrentSongListType => this.SongListTypes?
@@ -228,6 +251,8 @@ else
             this.Songs = this.Songs.Where(s => s.SongListTypeID == this.CurrentSongListTypeID);
         }
 
+        this.Songs = this.FilteredSongsBySearch;
+
         this.IsLoading = false;
 
         this.StateHasChanged();
@@ -265,6 +290,8 @@ else
     private async Task OnSongListTypeChanged(int songListTypeID)
     {
         this.CurrentSongListTypeID = songListTypeID;
+        this.ClearSelectedTaskOption();
+        this.ClearSelectedSongType();
         await this.RefreshGrid();
     }
 
@@ -403,6 +430,18 @@ else
     private void ClearSelectedSongType()
     {
         this.SongTypeChangeModel.SongTypeID = 0;
+    }
+
+    private async Task OnSearchForSongs(ChangeEventArgs e)
+    {
+        this.SearchForSongCriteria = e.Value?.ToString() ?? string.Empty;
+        await this.RefreshGrid();
+    }
+
+    private async Task ClearSearchResults()
+    {
+        this.SearchForSongCriteria = string.Empty;
+        await this.RefreshGrid();
     }
 
     private List<TaskOption> GetTaskOptionList()
