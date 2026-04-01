@@ -72,6 +72,31 @@ else
                 <Button Color="ButtonColor.Secondary" @onclick="OnHideRemoveSongTypeModalClick">Cancel</Button>
                 <Button Type="ButtonType.Submit" Color="ButtonColor.Danger">Remove</Button>
             </EditForm>
+
+            <div class="mt-3">
+                <h3>(@this.SongsToMove.Count()) songs that will be moved:</h3>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th scope="col">Artist</th>
+                            <th scope="col">Title</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var song in this.SongsToMove)
+                        {
+                            <tr @key="song.SongID">
+                                <td>
+                                    @song.Artist
+                                </td>
+                                <td>
+                                    @song.Title
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         }
         else
         {
