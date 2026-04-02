@@ -1,0 +1,20 @@
+﻿<EditForm Model="Request" OnValidSubmit="OnSearch">
+    <DataAnnotationsValidator />
+    <div class="row row-cols-lg-auto g-3 align-items-center">
+        <div class="col-12">
+            <label class="form-label">Search Artist:</label>
+        </div>
+        <div class="col-12">
+            <TextInput @bind-Value="Request.Criteria" />
+            <ValidationMessage For="@(() => Request.Criteria)" />
+        </div>
+        <div class="col-12">
+            <Button Type="ButtonType.Submit" Color="ButtonColor.Primary">Search</Button>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter] public MusicSearchRequestModel Request { get; set; } = new();
+    [Parameter] public EventCallback OnSearch { get; set; }
+}
