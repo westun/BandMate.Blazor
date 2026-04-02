@@ -1,5 +1,10 @@
-﻿<div class="d-flex align-items-center w-100 my-5">
+﻿<div class="d-flex @(IsCentered ? "justify-content-center" : "") align-items-center w-100 my-5">
     <Spinner Type="SpinnerType.Dots"
              Color="SpinnerColor.Primary"
              Size="SpinnerSize.ExtraLarge" />
 </div>
+
+@code {
+    [Parameter]
+    public bool IsCentered { get; set; }
+}
