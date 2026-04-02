@@ -97,41 +97,10 @@ else
     </BodyTemplate>
 </Modal>
 
-<Modal @ref="BulkSongRemovalModal" Title="Are you sure?" OnHidden="OnHideBulkSongRemovalModalClick">
-    <BodyTemplate>
-        <p>
-            Are you sure you want to remove (@this.SelectedSongs.Count) selected songs?
-        </p>
-        <div>
-            <Button Color="ButtonColor.Secondary" @onclick="OnHideBulkSongRemovalModalClick">Cancel</Button>
-            <Button Color="ButtonColor.Danger" @onclick="OnRemoveSelectedBulkSongsClick">Remove</Button>
-        </div>
-        <div class="mt-3">
-            <h3>(@this.SelectedSongs.Count()) songs that will be removed:</h3>
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th scope="col">Artist</th>
-                        <th scope="col">Title</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var song in this.SelectedSongs)
-                    {
-                        <tr @key="song.SongID">
-                            <td>
-                                @song.Artist
-                            </td>
-                            <td>
-                                @song.Title
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    </BodyTemplate>
-</Modal>
+<BulkSongRemovalModal @ref="BulkSongRemovalModal"
+                     Songs="SelectedSongs"
+                     OnConfirm="OnRemoveSelectedBulkSongsClick"
+                     OnCancel="OnHideBulkSongRemovalModalClick" />
 
 <Toasts class="p-3" Messages="ToastMessages" Placement="ToastsPlacement.BottomRight" AutoHide="true" />
 
@@ -170,7 +139,7 @@ else
     private Grid<SongDTO> CurrentGrid = new();
     private RemoveSongModal RemoveSongModal = default!;
     private Modal MusicSearchModal = new();
-    private Modal BulkSongRemovalModal = new();
+    private BulkSongRemovalModal BulkSongRemovalModal = new();
 
     private async Task<GridDataProviderResult<SongDTO>> SongDataProvider(GridDataProviderRequest<SongDTO> request)
     {

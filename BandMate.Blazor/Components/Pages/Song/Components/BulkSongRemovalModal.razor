@@ -1,0 +1,39 @@
+﻿<Modal @ref="modal" Title="Confirm Bulk Removal" OnHidden="OnCancel">
+    <BodyTemplate>
+        <p>Are you sure you want to remove (@Songs?.Count) selected songs?</p>
+        
+        <div class="mt-3" style="max-height: 300px; overflow-y: auto;">
+            <table class="table table-sm table-striped">
+                <thead>
+                    <tr>
+                        <th>Artist</th>
+                        <th>Title</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var song in Songs ?? new())
+                    {
+                        <tr @key="song.SongID">
+                            <td>@song.Artist</td>
+                            <td>@song.Title</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </BodyTemplate>
+    <FooterTemplate>
+        <Button Color="ButtonColor.Secondary" @onclick="HideAsync">Cancel</Button>
+        <Button Color="ButtonColor.Danger" @onclick="OnConfirm">Remove All Selected</Button>
+    </FooterTemplate>
+</Modal>
+
+@code {
+    private Modal modal = default!;
+    [Parameter] public HashSet<SongDTO>? Songs { get; set; }
+    [Parameter] public EventCallback OnConfirm { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    public Task ShowAsync() => modal.ShowAsync();
+    public Task HideAsync() => modal.HideAsync();
+}
