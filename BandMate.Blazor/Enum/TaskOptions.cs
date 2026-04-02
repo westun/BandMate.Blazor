@@ -2,8 +2,8 @@
 {
     public enum TaskOptions
     {
+        Empty,
         ChangeSongType,
         BulkSongRemoval,
-        Empty,
     }
 }

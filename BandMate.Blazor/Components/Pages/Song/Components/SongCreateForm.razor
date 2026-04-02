@@ -1,0 +1,44 @@
+﻿@using System.ComponentModel.DataAnnotations
+<div class="card bg-light mb-3 shadow-sm">
+    <div class="card-body">
+        <EditForm Model="Model" OnValidSubmit="HandleValidSubmit">
+            <DataAnnotationsValidator />
+            <div class="row row-cols-lg-auto g-3 align-items-center">
+                <div class="col-12">
+                    <label class="form-label mb-0">Artist:</label>
+                    <TextInput @bind-Value="Model.Artist" placeholder="Enter artist name" />
+                    <ValidationMessage For="@(() => Model.Artist)" />
+                </div>
+                <div class="col-12">
+                    <label class="form-label mb-0">Title:</label>
+                    <TextInput @bind-Value="Model.Title" placeholder="Enter song title" />
+                    <ValidationMessage For="@(() => Model.Title)" />
+                </div>
+                <div class="col-12 pt-lg-4">
+                    @* Align buttons with inputs on large screens *@
+                    <Button Type="ButtonType.Submit" Color="ButtonColor.Success" Class="me-2">
+                        <Icon Name="IconName.CheckCircle" /> Create
+                    </Button>
+                    <Button Color="ButtonColor.Secondary" @onclick="OnCancel">
+                        Cancel
+                    </Button>
+                </div>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    // We initialize a new model locally so the parent doesn't have to manage it
+    [Parameter] public CreateSongModel Model { get; set; } = new();
+    
+    [Parameter, EditorRequired] public EventCallback<CreateSongModel> OnSave { get; set; }
+    [Parameter, EditorRequired] public EventCallback OnCancel { get; set; }
+
+    private async Task HandleValidSubmit()
+    {
+        await OnSave.InvokeAsync(Model);
+        // Optional: Clear the model after success if not navigating away
+        Model = new();
+    }
+}

@@ -1,0 +1,27 @@
+﻿@if (Types != null && Types.Any())
+{
+    <Tabs EnableFadeEffect="false" NavStyle="NavStyle.Pills" Class="mb-3 p-2">
+        @foreach (var songListType in Types)
+        {
+            <Tab @key="songListType.SongListTypeID"
+                 Title="@songListType.ListTypeName"
+                 IsActive="@(songListType.SongListTypeID == ActiveId)"
+                 OnClick="() => OnChanged.InvokeAsync(songListType.SongListTypeID)">
+                <Content>
+                    @* Content is usually handled by the Grid below the tabs in your layout *@
+                </Content>
+            </Tab>
+        }
+    </Tabs>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public IEnumerable<SongListTypeDTO>? Types { get; set; }
+
+    [Parameter, EditorRequired]
+    public int ActiveId { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnChanged { get; set; }
+}

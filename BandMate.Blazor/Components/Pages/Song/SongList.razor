@@ -1,5 +1,6 @@
 ﻿@page "/song/list";
 @using System.ComponentModel.DataAnnotations
+@using BandMate.Blazor.Components.Pages.Song.Components
 @attribute [Authorize]
 @rendermode InteractiveServer
 @inject ISongService SongService
@@ -8,85 +9,39 @@
 
 @if (this.IsLoading)
 {
-    <div class="mb-3">
-        <Spinner Type="SpinnerType.Dots" Color="SpinnerColor.Primary" Size="SpinnerSize.ExtraLarge" />
-    </div>
+    <LoadingSpinner />
 }
 else
 {
-    <h1 class="text-center">@this.CurrentBand?.Name</h1>
-    
-    <div class="mb-3">
-        <Button Color="ButtonColor.Primary">Create New Song</Button>
-        <Button Color="ButtonColor.Info" @onclick="() => OnSearchMusicCatalogClick()" >
-            Search Music Catalog <span class="bi bi-music-note-beamed" aria-hidden="true"></span>
-        </Button>
-    </div>
-    
+    <PageHeader Title="@this.CurrentBand?.Name" />
+
+    <SongListActions OnCreate="OnCreateNewSongClick"
+                     OnSearchCatalog="OnSearchMusicCatalogClick" />
+        
+    @if (this.ShowCreateSongPanel)
+    {
+        <div class="row">
+            <div class="col-md-8">
+                <SongCreateForm Model="this.NewCreateSongModel"
+                                OnSave="OnCreateSong"
+                                OnCancel="OnCancelCreatingNewSong" />
+            </div>
+        </div>
+    }
+
     <h2>@Songs.Count() Songs</h2>
-    <Tabs EnableFadeEffect="false" NavStyle="NavStyle.Pills" Class="mb-3">
-        @foreach (var songListType in this.SongListTypes)
-        {
-            <div @key="songListType.SongListTypeID">
-                <Tab Title="@songListType.ListTypeName"
-                     IsActive="@(songListType.SongListTypeID == this.CurrentSongListTypeID)"
-                     OnClick="() => OnSongListTypeChanged(songListType.SongListTypeID)">
-                    <Content></Content>
-                </Tab>
-            </div>
-        }
-    </Tabs>
+    <SongListTabs Types="SongListTypes"
+                  ActiveId="CurrentSongListTypeID"
+                  OnChanged="OnSongListTypeChanged" />
+    
+    <SongBulkActions SelectedSongs="this.SelectedSongs"
+                     AvailableTypes="this.SongListTypes"
+                     CurrentTypeId="this.CurrentSongListTypeID"
+                     OnBulkRemoveClick="OnOpenBulkSongRemovalModal"
+                     OnMoveSongs="OnChangeSongType"
+                     @bind-SelectedTask="SelectedTask" />
 }
 
-@if (this.ShowEditPanel)
-{
-    <div class="row">
-        <div class="col-md-4">
-            <EditForm Model="this.TaskOptionsList">
-                <DataAnnotationsValidator />
-                <ValidNativeSelect @bind-Value="this.SelectedTaskOption"
-                                   Label="Select task:">
-                    @foreach (var taskOption in this.TaskOptionsList)
-                    {
-                        <option value="@taskOption.Value">@taskOption.Text</option>
-                    }
-                </ValidNativeSelect>
-            </EditForm>
-        </div>
-    </div>
-
-    @if (SelectedTaskOption == (int)TaskOptions.BulkSongRemoval)
-    {
-        <div class="mb-3">
-            <Button Color="ButtonColor.Primary" @onclick="OnOpenBulkSongRemovalModal">Remove Selected Songs</Button>
-        </div>
-    }
-
-    @if (SelectedTaskOption == (int)TaskOptions.ChangeSongType)
-    {
-        <div class="mb-3">
-            <div>
-                (<strong>@this.SelectedSongs.Count</strong>) songs will be moved from <strong>@CurrentSongListType?.ListTypeName</strong>
-            </div>
-            <div class="row">
-                <div class="col-md-4">
-                    <EditForm Model="this.SongTypeChangeModel" OnValidSubmit="this.OnChangeSongType">
-                        <DataAnnotationsValidator />
-                        <ValidNativeSelect @bind-Value="this.SongTypeChangeModel.SongTypeID" Label="Move to:">
-                            @foreach (var songType in this.SongListTypes.Where(slt => slt.SongListTypeID != this.CurrentSongListTypeID))
-                            {
-                                <option value="@songType.SongListTypeID">@songType.ListTypeName</option>
-                            }
-                        </ValidNativeSelect>
-                        <div>
-                            <Button Color="ButtonColor.Primary" Type="ButtonType.Submit">Change Song Type</Button>
-                        </div>
-                    </EditForm>
-                </div>
-            </div>
-        </div>
-    }
-}
 
 @if (!IsLoading)
 {
@@ -211,9 +166,7 @@ else
 
     private int CurrentSongListTypeID { get; set; } = 0;
     private IEnumerable<SongListTypeDTO> SongListTypes { get; set; } = Enumerable.Empty<SongListTypeDTO>();
-    private SongListTypeDTO CurrentSongListType => this.SongListTypes?
-        .FirstOrDefault(slt => slt.SongListTypeID == this.CurrentSongListTypeID) ?? new();
-    private SongTypeModel SongTypeChangeModel { get; set; } = new();
+    private CreateSongModel NewCreateSongModel { get; set; } = new();
 
     private int CurrentAccountID { get; set; } = 0;
     private int CurrentBandID { get; set; } = 0;
@@ -232,10 +185,9 @@ else
 
     List<ToastMessage> ToastMessages = new List<ToastMessage>();
 
-    private bool ShowEditPanel => this.SelectedSongs.Count > 0;
+    private bool ShowCreateSongPanel { get; set; } = false;
 
-    private List<TaskOption> TaskOptionsList => this.GetTaskOptionList();
-    private int SelectedTaskOption = (int)TaskOptions.Empty;
+    private TaskOptions SelectedTask { get; set; } = TaskOptions.Empty;
 
     private async Task<GridDataProviderResult<SongDTO>> SongDataProvider(GridDataProviderRequest<SongDTO> request)
     {
@@ -291,7 +243,6 @@ else
     {
         this.CurrentSongListTypeID = songListTypeID;
         this.ClearSelectedTaskOption();
-        this.ClearSelectedSongType();
         await this.RefreshGrid();
     }
 
@@ -388,14 +339,13 @@ else
         });
 
         this.ClearSelectedTaskOption();
-
         this.ClearSongCache();
         await this.RefreshGrid();
     }
 
     private void ClearSelectedTaskOption()
     {
-        this.SelectedTaskOption = (int)TaskOptions.Empty;
+        this.SelectedTask = TaskOptions.Empty;
     }
 
     private async Task OnOpenBulkSongRemovalModal()
@@ -403,10 +353,10 @@ else
         await this.BulkSongRemovalModal.ShowAsync();
     }
 
-    private async Task OnChangeSongType()
+    private async Task OnChangeSongType(int selectedSongTypeIDToMoveTo)
     {
         var songsToChangeType = this.SelectedSongs
-            .Select(s => { s.SongListTypeID = this.SongTypeChangeModel.SongTypeID; return s; })
+            .Select(s => { s.SongListTypeID = selectedSongTypeIDToMoveTo; return s; })
             .ToList();
 
         foreach (var song in songsToChangeType)
@@ -414,7 +364,7 @@ else
             await this.SongService.UpdateAsync(song);
         }
 
-        var selectedSongType = this.SongListTypes.FirstOrDefault(slt => slt.SongListTypeID == this.SongTypeChangeModel.SongTypeID);
+        var selectedSongType = this.SongListTypes.FirstOrDefault(slt => slt.SongListTypeID == selectedSongTypeIDToMoveTo);
         this.ToastMessages.Add(new ToastMessage
         {
             Type = ToastType.Success,
@@ -422,14 +372,8 @@ else
         });
 
         this.ClearSelectedTaskOption();
-        this.ClearSelectedSongType();
         this.ClearSongCache();
         await this.RefreshGrid();
-    }
-
-    private void ClearSelectedSongType()
-    {
-        this.SongTypeChangeModel.SongTypeID = 0;
     }
 
     private async Task OnSearchForSongs(ChangeEventArgs e)
@@ -444,32 +388,47 @@ else
         await this.RefreshGrid();
     }
 
-    private List<TaskOption> GetTaskOptionList()
+    private async Task OnCreateNewSongClick()
     {
-        return new List<TaskOption>
+        this.ShowCreateSongPanel = true;
+    }
+
+    private async Task OnCreateSong()
+    {
+        var newSong = await this.SongService.CreateAsync(new SongDTO
         {
-            new TaskOption ()
-            {
-                Text = "Change Song Type",
-                Value = (int)TaskOptions.ChangeSongType
-            },
-            new TaskOption ()
-            {
-                Text = "Bulk Song Removal",
-                Value = (int)TaskOptions.BulkSongRemoval
-            },
-        };
+            BandID = this.CurrentBandID,
+            CreatedByAccountID = this.CurrentAccountID,
+            SongListTypeID = this.CurrentSongListTypeID,
+            Artist = this.NewCreateSongModel.Artist,
+            Title = this.NewCreateSongModel.Title,
+        });
+
+        this.ToastMessages.Add(new ToastMessage
+        {
+            Type = ToastType.Success,
+            Message = $"New song {newSong.Title} by {newSong.Artist} was created succesfully.",
+        });
+
+        this.ClearNewSongRequest();
+        this.ClearSongCache();
+        await this.RefreshGrid();
+    }
+
+    private async Task OnCancelCreatingNewSong()
+    {
+        this.ClearNewSongRequest();
+    }
+
+    private void ClearNewSongRequest()
+    {
+        this.NewCreateSongModel = new();
+        this.ShowCreateSongPanel = false;        
     }
 
     private class TaskOption
     {
         public string Text { get; set; }
         public int Value { get; set; }
-    }
-
-    private class SongTypeModel
-    {
-        [Range(1, int.MaxValue, ErrorMessage = "Please select a song type.")]
-        public int SongTypeID { get; set; } = 0;
     }
 }

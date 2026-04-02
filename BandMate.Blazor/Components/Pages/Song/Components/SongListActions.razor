@@ -1,0 +1,17 @@
+﻿<div class="mb-3 d-flex gap-2 align-items-center">
+    <Button Color="ButtonColor.Primary" @onclick="OnCreate">
+        <Icon Name="IconName.PlusCircle" class="me-1" /> Create New Song
+    </Button>
+    
+    <Button Color="ButtonColor.Info" @onclick="OnSearchCatalog">
+        Search Music Catalog <span class="bi bi-music-note-beamed" aria-hidden="true"></span>
+    </Button>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public EventCallback OnCreate { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback OnSearchCatalog { get; set; }
+}

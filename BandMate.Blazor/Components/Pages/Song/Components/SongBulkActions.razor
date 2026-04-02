@@ -1,0 +1,93 @@
+﻿@if (SelectedSongs != null && SelectedSongs.Any())
+{
+    <div class="card mb-3 shadow-sm">
+        <div class="card-header bg-success text-white">
+            <strong>Bulk Actions</strong> (@SelectedSongs.Count songs selected)
+        </div>
+        <div class="card-body">
+            <div class="row align-items-stretch g-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Select Task:</label>
+                    <select class="form-select" @onchange="OnTaskChanged" value="@SelectedTask">
+                        <option value="0">-- Choose Action --</option>
+                        @foreach (var option in TaskOptionsList)
+                        {
+                            <option value="@option.Value">@option.Text</option>
+                        }
+                    </select>
+                </div>
+
+                @if (SelectedTask == TaskOptions.BulkSongRemoval)
+                {
+                    <div class="col-md-4">
+                        <label class="form-label d-block">&nbsp;</label>
+                        <Button Color="ButtonColor.Danger" @onclick="OnBulkRemoveClick">
+                            <Icon Name="IconName.Trash" /> Remove Selected
+                        </Button>
+                    </div>
+                }
+
+                @if (SelectedTask == TaskOptions.ChangeSongType)
+                {
+                    <div class="col-md-5">
+                        <EditForm Model="SongTypeModel" OnValidSubmit="() => OnMoveSongsClick(SongTypeModel.SongTypeID)">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary />
+                            <div class="d-flex align-items-end gap-2">
+                                <div class="flex-grow-1">
+                                    <ValidNativeSelect @bind-Value="SongTypeModel.SongTypeID" Label="Move to:" class="mb-0">
+                                        @foreach (var type in AvailableTypes.Where(t => t.SongListTypeID != CurrentTypeId))
+                                        {
+                                            <option value="@type.SongListTypeID">@type.ListTypeName</option>
+                                        }
+                                    </ValidNativeSelect>
+                                </div>
+                                <Button Type="ButtonType.Submit" Color="ButtonColor.Primary" Class="mb-3">
+                                    Move
+                                </Button>
+                            </div>
+                        </EditForm>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public HashSet<SongDTO> SelectedSongs { get; set; } = new();
+    [Parameter] public IEnumerable<SongListTypeDTO> AvailableTypes { get; set; } = new List<SongListTypeDTO>();
+    [Parameter] public int CurrentTypeId { get; set; }
+
+    [Parameter] public EventCallback OnBulkRemoveClick { get; set; }
+    [Parameter] public EventCallback<int> OnMoveSongs { get; set; }
+    [Parameter] public EventCallback<TaskOptions> SelectedTaskChanged { get; set; }
+
+    [Parameter] public TaskOptions SelectedTask { get; set; }
+    private SongTypeModel SongTypeModel { get; set; } = new();
+
+    private List<TaskOption> TaskOptionsList = new() {
+        new() { Text = "Change Song Type", Value = TaskOptions.ChangeSongType.ToString() },
+        new() { Text = "Remove Selected Songs", Value = TaskOptions.BulkSongRemoval.ToString() },
+    };
+
+    private async Task OnTaskChanged(ChangeEventArgs e)
+    {
+        if (Enum.TryParse<TaskOptions>(e.Value?.ToString(), out var result))
+        {
+            SelectedTask = result;
+            await SelectedTaskChanged.InvokeAsync(SelectedTask);
+        }
+    }
+
+    private async Task OnMoveSongsClick(int songTypeIDToMoveTo)
+    {
+        await OnMoveSongs.InvokeAsync(songTypeIDToMoveTo);
+    }
+        
+    private class TaskOption
+    {
+        public string Text { get; set; }
+        public string Value { get; set; }
+    }
+}
