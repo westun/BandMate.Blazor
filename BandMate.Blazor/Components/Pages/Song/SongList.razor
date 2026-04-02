@@ -199,11 +199,9 @@ else
 
         @if (!string.IsNullOrWhiteSpace(this.SearchForSongCriteria))
         {
-            this.Songs = string.IsNullOrWhiteSpace(this.SearchForSongCriteria)
-                ? this.Songs.ToList()
-                : this.Songs.Where(s =>
-                    s.Artist.Contains(this.SearchForSongCriteria, StringComparison.OrdinalIgnoreCase)
-                    || s.Title.Contains(this.SearchForSongCriteria, StringComparison.OrdinalIgnoreCase)).ToList();
+            this.Songs = this.Songs.Where(s =>
+                s.Artist.Contains(this.SearchForSongCriteria, StringComparison.OrdinalIgnoreCase) ||
+                s.Title.Contains(this.SearchForSongCriteria, StringComparison.OrdinalIgnoreCase));
         }
 
         this.IsLoading = false;
