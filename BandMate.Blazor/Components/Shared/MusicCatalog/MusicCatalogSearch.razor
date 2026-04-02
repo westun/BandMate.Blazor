@@ -7,13 +7,12 @@
 
 @if (this.IsLoading)
 {
-    <div class="mb-3">
-        <Spinner Type="SpinnerType.Dots" Color="SpinnerColor.Primary" Size="SpinnerSize.ExtraLarge" />
-    </div>
+    <LoadingSpinner IsCentered="true" />
 }
 else
 {
-    <h1 class="text-center">Music Catalog Search</h1>
+    <PageHeader Title="Music Catalog Search" />
+
     <EditForm Model="SearchRequest" OnValidSubmit="() => this.OnSearchForArtist()" autocomplete="on">
         <DataAnnotationsValidator />
         <div class="row row-cols-lg-auto g-3 align-items-center">
