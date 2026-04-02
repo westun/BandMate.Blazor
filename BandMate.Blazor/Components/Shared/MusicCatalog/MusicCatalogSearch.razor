@@ -18,22 +18,15 @@ else
 
     @if (CurrentView == MusicCatalogView.Artists)
     {
-        <div class="row mt-3">
-            <p>
-                <span class="fs-3">Select an artist:</span>
-            </p>
-            @foreach (var artist in ArtistSearchResults)
-            {
-                <div class="col-md-6" @key="artist.Id" @onclick="() => OnSelectArtist(artist)">
-                    <div style="cursor:pointer;" class="card mb-3">
-                        <img src="@artist.ImageUrl" class="card-img-top" alt="Band Name">
-                        <div class="card-body">
-                            <h5 class="card-title">@artist.Name</h5>
-                        </div>
-                    </div>
-                </div>
-            }
+        <div class="mt-3">
+            <span class="fs-3">Select an artist:</span>
         </div>
+        <MediaCardGrid TItem="Artist"
+                       Items="ArtistSearchResults"
+                       GetId="a => a.Id" 
+                       GetName="a => a.Name" 
+                       GetImageUrl="a => a.ImageUrl"
+                       OnSelect="OnSelectArtist" />
     }
 
     <div class="mt-3">
@@ -87,21 +80,17 @@ else
                     <TextInput @bind-Value="SearchForAlbumsCriteria" @oninput="OnSearchForAlbums" />
                 </div>
             </div>
-            <p>
+            <div class="mt-3">
                 <span class="fs-4">Select an album:</span>
-            </p>
-            @foreach (var album in AlbumsFilteredBySearch)
-            {
-                <div class="col-md-4" @key="album.Id" @onclick="() => OnSelectAlbum(album)" ">
-                    <div style="cursor:pointer;" class="card mb-3">
-                        <img src="@album.AlbumImgCoverUrl" class="card-img-top" alt="Band Name">
-                        <div class="card-body">
-                            <h5 class="card-title">@album.Name</h5>
-                            <p class="card-text">Release Date: @album.Release_Date</p>
-                        </div>
-                    </div>
-                </div>
-            }
+            </div>
+            <MediaCardGrid TItem="Album"
+                           Items="AlbumsFilteredBySearch"
+                           GetId="a => a.Id" 
+                           GetName="a => a.Name" 
+                           GetImageUrl="a => a.AlbumImgCoverUrl"
+                           ShowSubtext="true" 
+                           GetSubtext='a => $"Released: {a.Release_Date}"'
+                           OnSelect="OnSelectAlbum" />
         </div>
     }
 

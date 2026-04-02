@@ -1,0 +1,28 @@
+﻿@typeparam TItem
+<div class="row mt-3">
+    @foreach (var item in Items)
+    {
+        <div class="col-md-6 col-lg-4" @key="GetId(item)" @onclick="() => OnSelect.InvokeAsync(item)">
+            <div style="cursor:pointer;" class="card mb-3">
+                <img src="@GetImageUrl(item)" class="card-img-top" alt="Cover">
+                <div class="card-body">
+                    <h5 class="card-title">@GetName(item)</h5>
+                    @if (ShowSubtext)
+                    {
+                        <p class="card-text">@GetSubtext(item)</p>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public IEnumerable<TItem> Items { get; set; } = [];
+    [Parameter] public EventCallback<TItem> OnSelect { get; set; }
+    [Parameter] public Func<TItem, string> GetName { get; set; } = default!;
+    [Parameter] public Func<TItem, string> GetImageUrl { get; set; } = default!;
+    [Parameter] public Func<TItem, object> GetId { get; set; } = default!;
+    [Parameter] public bool ShowSubtext { get; set; }
+    [Parameter] public Func<TItem, string>? GetSubtext { get; set; }
+}
