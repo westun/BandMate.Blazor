@@ -167,7 +167,7 @@ else
                     }
                     @foreach (var track in tracksToDisplay)
                     {
-                        <tr @key="track.Id">
+                        <tr @key="@(track.Id + "_" + tracksToDisplay.IndexOf(track))"> <!-- the track.Id is not always unique, throws error, make it always unique using index-->
                             <th scope="row">
                                 @(this.CurrentView == MusicCatalogView.Tracks
                                     ? tracksToDisplay.IndexOf(track) + 1
