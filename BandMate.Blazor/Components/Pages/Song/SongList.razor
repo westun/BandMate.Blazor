@@ -156,12 +156,6 @@ else
     private IEnumerable<SongDTO> Songs { get; set; } = Enumerable.Empty<SongDTO>();
     private List<SongDTO> MasterSongList { get; set; } = Enumerable.Empty<SongDTO>().ToList();
 
-    private List<SongDTO> FilteredSongsBySearch => string.IsNullOrWhiteSpace(this.SearchForSongCriteria)
-        ? this.Songs.ToList()
-        : this.Songs.Where(s => 
-            s.Artist.Contains(this.SearchForSongCriteria, StringComparison.OrdinalIgnoreCase)
-            || s.Title.Contains(this.SearchForSongCriteria, StringComparison.OrdinalIgnoreCase)).ToList();
-
     private string SearchForSongCriteria { get; set; } = string.Empty;
 
     private int CurrentSongListTypeID { get; set; } = 0;
@@ -203,7 +197,14 @@ else
             this.Songs = this.Songs.Where(s => s.SongListTypeID == this.CurrentSongListTypeID);
         }
 
-        this.Songs = this.FilteredSongsBySearch;
+        @if (!string.IsNullOrWhiteSpace(this.SearchForSongCriteria))
+        {
+            this.Songs = string.IsNullOrWhiteSpace(this.SearchForSongCriteria)
+                ? this.Songs.ToList()
+                : this.Songs.Where(s =>
+                    s.Artist.Contains(this.SearchForSongCriteria, StringComparison.OrdinalIgnoreCase)
+                    || s.Title.Contains(this.SearchForSongCriteria, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
 
         this.IsLoading = false;
 
