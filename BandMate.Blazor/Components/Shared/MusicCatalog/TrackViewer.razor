@@ -1,0 +1,61 @@
+﻿@using BandMate.MusicCatalog.Models
+<div class="row mt-3">
+    <p>
+        <span class="fs-3">Artist: <strong>@ArtistName</strong></span>
+    </p>
+
+    @if (CurrentView == MusicCatalogView.TracksByAlbum)
+    {
+        <p>
+            <span class="fs-4">Album: <strong>@AlbumName</strong></span>
+        </p>
+        <div class="mb-2">
+            <img src="@AlbumImageUrl" />
+        </div>
+    }
+
+    @if (CurrentView == MusicCatalogView.Tracks)
+    {
+        <div class="row row-cols-lg-auto align-items-center mb-2">
+            <div class="col-12"><label class="form-label">Search for track:</label></div>
+            <div class="col-12">
+                <TextInput @bind-Value="SearchCriteria" @oninput="OnSearch" />
+            </div>
+        </div>
+    }
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Track Name</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var (track, index) in Tracks.Select((t, i) => (t, i)))
+            {
+                <tr @key="track.Id + index.ToString()">
+                    <th scope="row">
+                        @(CurrentView == MusicCatalogView.Tracks ? index + 1 : track.Track_Number)
+                    </th>
+                    <td>
+                        <Button Type="ButtonType.Link" @onclick="() => OnTrackSelected.InvokeAsync(track)">
+                            @track.Name
+                        </Button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    [Parameter] public MusicCatalogView CurrentView { get; set; }
+    [Parameter] public string ArtistName { get; set; } = "";
+    [Parameter] public string AlbumName { get; set; } = "";
+    [Parameter] public string AlbumImageUrl { get; set; } = "";
+    [Parameter] public string SearchCriteria { get; set; } = "";
+    [Parameter] public IEnumerable<Song> Tracks { get; set; } = [];
+    [Parameter] public EventCallback<ChangeEventArgs> OnSearch { get; set; }
+    [Parameter] public EventCallback<Song> OnTrackSelected { get; set; }
+}

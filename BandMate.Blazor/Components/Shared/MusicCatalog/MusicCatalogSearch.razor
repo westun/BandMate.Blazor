@@ -29,134 +29,31 @@ else
                        OnSelect="OnSelectArtist" />
     }
 
-    <div class="mt-3">
-        @if (CurrentView == MusicCatalogView.Tracks || CurrentView == MusicCatalogView.Albums)
-        {
-            <p>
-                <Button Color="ButtonColor.Info" @onclick="() => NavigateBackToArtistView()">
-                    <span class="bi bi-arrow-left-circle"></span>
-                    Go Back To Artists
-                </Button>
-            </p>
-        }
-        else if (CurrentView == MusicCatalogView.TracksByAlbum)
-        {
-            <p>
-                <Button Color="ButtonColor.Info" @onclick="() => NavigateBackToAlbumView()">
-                    <span class="bi bi-arrow-left-circle"></span>
-                    Go Back To Albums
-                </Button>
-            </p>
-        }
-
-        @if (CurrentView == MusicCatalogView.Albums || CurrentView == MusicCatalogView.Tracks)
-        {
-            <div class="fs-4">Filter tracks by:</div>
-            <Tabs EnableFadeEffect="false" NavStyle="NavStyle.Pills" Class="mb-3">
-                @foreach (var subViewNavItem in SubViewNavItems)
-                {
-                    <div @key="subViewNavItem.Name">
-                        <Tab Title="@subViewNavItem.Name"
-                            OnClick="async () => await OnTrackViewSelection(subViewNavItem)">
-                            <Content></Content>
-                        </Tab>
-                    </div>
-                }
-            </Tabs>
-        }
-    </div>
+    <CatalogNavigation CurrentView="CurrentView" 
+                       NavItems="SubViewNavItems"
+                       OnBackToArtists="NavigateBackToArtistView"
+                       OnBackToAlbums="NavigateBackToAlbumView"
+                       OnViewChanged="OnTrackViewSelection" />
 
     @if (CurrentView == MusicCatalogView.Albums)
     {
-        <div class="row mt-3">
-            <p>
-                <span class="fs-3">Artist: <strong>@SelectedArtist.Name</strong></span>
-            </p>
-            <div class="row row-cols-lg-auto align-items-center mb-2">
-                <div class="col-12">
-                    <label class="form-label">Search for album:</label>
-                </div>
-                <div class="col-12">
-                    <TextInput @bind-Value="SearchForAlbumsCriteria" @oninput="OnSearchForAlbums" />
-                </div>
-            </div>
-            <div class="mt-3">
-                <span class="fs-4">Select an album:</span>
-            </div>
-            <MediaCardGrid TItem="Album"
-                           Items="AlbumsFilteredBySearch"
-                           GetId="a => a.Id" 
-                           GetName="a => a.Name" 
-                           GetImageUrl="a => a.AlbumImgCoverUrl"
-                           ShowSubtext="true" 
-                           GetSubtext='a => $"Released: {a.Release_Date}"'
-                           OnSelect="OnSelectAlbum" />
-        </div>
+        <AlbumSelector ArtistName="@SelectedArtist.Name"
+                       SearchCriteria="@SearchForAlbumsCriteria"
+                       FilteredAlbums="AlbumsFilteredBySearch"
+                       OnSearchChanged="OnSearchForAlbums"
+                       OnAlbumSelected="OnSelectAlbum" />
     }
 
     @if (CurrentView == MusicCatalogView.TracksByAlbum || CurrentView == MusicCatalogView.Tracks)
     {
-        <div class="row mt-3">
-            <p>
-                <span class="fs-3">Artist: <strong>@SelectedArtist.Name</strong></span>
-            </p>
-            @if (CurrentView == MusicCatalogView.TracksByAlbum)
-            {
-                <p>
-                    <span class="fs-4">Album: <strong>@SelectedAlbum.Name</strong></span>
-                </p>
-                <div class="mb-2">
-                    <img src="@SelectedAlbum.AlbumImgCoverUrl" />
-                </div>
-            }
-            @if (CurrentView == MusicCatalogView.Tracks)
-            {
-                <div class="row row-cols-lg-auto align-items-center mb-2">
-                    <div class="col-12">
-                        <label class="form-label">Search for track:</label>
-                    </div>
-                    <div class="col-12">
-                        <TextInput @bind-Value="SearchForTracksCriteria" @oninput="OnSearchForTrack" />
-                    </div>
-                </div>
-            }
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">Track Name</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @{
-                        var tracksToDisplay = new List<Song>();
-                        @if (CurrentView == MusicCatalogView.Tracks)
-                        {
-                            tracksToDisplay = TracksFilteredBySearch;
-                        }
-                        else
-                        {
-                            tracksToDisplay = SelectedAlbum.Tracks?.ToList() ?? new List<Song>();
-                        }
-                    }
-                    @foreach (var track in tracksToDisplay)
-                    {
-                        <tr @key="@(track.Id + "_" + tracksToDisplay.IndexOf(track))"> <!-- the track.Id is not always unique, throws error, make it always unique using index-->
-                            <th scope="row">
-                                @(CurrentView == MusicCatalogView.Tracks
-                                    ? tracksToDisplay.IndexOf(track) + 1
-                                    : track.Track_Number)
-                            </th>
-                            <td>
-                                <Button Type="ButtonType.Link" @onclick="() => OnSelectTrack(track)">
-                                    @track.Name
-                                </Button>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
+        <TrackViewer CurrentView="CurrentView"
+                     ArtistName="@SelectedArtist.Name"
+                     AlbumName="@SelectedAlbum.Name"
+                     AlbumImageUrl="@SelectedAlbum.AlbumImgCoverUrl"
+                     Tracks="GetTracksToDisplay()"
+                     SearchCriteria="@SearchForTracksCriteria"
+                     OnSearch="OnSearchForTrack"
+                     OnTrackSelected="OnSelectTrack" />
     }
 }
 
@@ -182,7 +79,7 @@ else
     // --- Data Collections (Results & Selections) ---
     private IEnumerable<Artist> ArtistSearchResults { get; set; } = Enumerable.Empty<Artist>();
     private IEnumerable<Album> AlbumSearchResults { get; set; } = Enumerable.Empty<Album>();
-    
+
     private Artist SelectedArtist { get; set; } = new();
     private Album SelectedAlbum { get; set; } = new();
     private IEnumerable<Song> SelectedArtistTracks { get; set; } = Enumerable.Empty<Song>();
@@ -311,10 +208,15 @@ else
         SelectedAlbum = new();
     }
 
-    // --- Classes ---
-    public class SubViewNavItem
+    private IEnumerable<Song> GetTracksToDisplay()
     {
-        public string Name { get; set; }
-        public MusicCatalogView View { get; set; }
+        @if (CurrentView == MusicCatalogView.Tracks)
+        {
+            return TracksFilteredBySearch;
+        }
+        else
+        {
+            return SelectedAlbum.Tracks?.ToList() ?? new List<Song>();
+        }
     }
 }
