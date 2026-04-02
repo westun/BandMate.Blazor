@@ -150,38 +150,41 @@ else
 <Toasts class="p-3" Messages="ToastMessages" Placement="ToastsPlacement.BottomRight" AutoHide="true" />
 
 @code {
-    [CascadingParameter]
+    [CascadingParameter] 
     private Task<AuthenticationState> AuthState { get; set; } = default!;
 
-    private IEnumerable<SongDTO> Songs { get; set; } = Enumerable.Empty<SongDTO>();
+    // === 2. Core Data & Collections ===
+    private BandDTO CurrentBand { get; set; } = new();
+    private int CurrentBandID { get; set; } = 0;
+    private int CurrentAccountID { get; set; } = 0;
+    
     private List<SongDTO> MasterSongList { get; set; } = Enumerable.Empty<SongDTO>().ToList();
-
-    private string SearchForSongCriteria { get; set; } = string.Empty;
-
-    private int CurrentSongListTypeID { get; set; } = 0;
+    private IEnumerable<SongDTO> Songs { get; set; } = Enumerable.Empty<SongDTO>();
     private IEnumerable<SongListTypeDTO> SongListTypes { get; set; } = Enumerable.Empty<SongListTypeDTO>();
+    private int CurrentSongListTypeID { get; set; } = 0;
+
+    // === 3. Search & Selection State ===
+    private string SearchForSongCriteria { get; set; } = string.Empty;
+    private HashSet<SongDTO> SelectedSongs { get; set; } = new();
+    private TaskOptions SelectedTask { get; set; } = TaskOptions.Empty;
+    
+    // For single-item actions (like deleting one song)
+    private SongDTO CurrentSelectedSong { get; set; } = new();
+
+    // === 4. UI Toggles & Feedback ===
+    private bool IsLoading { get; set; } = true;
+    private bool ShowCreateSongPanel { get; set; } = false;
+    private List<ToastMessage> ToastMessages { get; set; } = new();
+
+    // === 5. New Component Models ===
+    // This feeds your SongCreateForm component
     private CreateSongModel NewCreateSongModel { get; set; } = new();
 
-    private int CurrentAccountID { get; set; } = 0;
-    private int CurrentBandID { get; set; } = 0;
-    private BandDTO CurrentBand { get; set; } = new();
-
-    private bool IsLoading { get; set; } = true;
-
-    private HashSet<SongDTO> SelectedSongs = new();
-
+    // === 6. Component References (BlazorBootstrap / Library) ===
     private Grid<SongDTO> CurrentGrid = new();
     private Modal RemoveSongModal = new();
     private Modal MusicSearchModal = new();
     private Modal BulkSongRemovalModal = new();
-
-    private SongDTO CurrentSelectedSong { get; set; } = new();
-
-    List<ToastMessage> ToastMessages = new List<ToastMessage>();
-
-    private bool ShowCreateSongPanel { get; set; } = false;
-
-    private TaskOptions SelectedTask { get; set; } = TaskOptions.Empty;
 
     private async Task<GridDataProviderResult<SongDTO>> SongDataProvider(GridDataProviderRequest<SongDTO> request)
     {
@@ -229,15 +232,13 @@ else
         var user = authState.User;
         if (user.Identity?.IsAuthenticated ?? false)
         {
-            var accountIDClaim = user.Claims.FirstOrDefault(c => c.Type == "AccountID");
-            if (accountIDClaim != null && int.TryParse(accountIDClaim.Value, out int accountID))
-            {
-                return accountID;
-            }
+            var claim = user.Claims.FirstOrDefault(c => c.Type == "AccountID");
+            if (int.TryParse(claim?.Value, out int id)) return id;
         }
         return 0;
     }
 
+    // === 2. Navigation & Grid State ===
     private async Task OnSongListTypeChanged(int songListTypeID)
     {
         this.CurrentSongListTypeID = songListTypeID;
@@ -250,131 +251,59 @@ else
         await this.CurrentGrid.RefreshDataAsync();
     }
 
-    private async Task OnConfirmRemoveSongClick(SongDTO song)
+    private void ClearSongCache()
     {
-        this.CurrentSelectedSong = song;
-        await this.RemoveSongModal.ShowAsync();
+        this.Songs = Enumerable.Empty<SongDTO>();
+        this.MasterSongList = new();
     }
 
-    private async Task OnRemoveSelectedSongClick()
+    // === 3. Song Creation (Manual & Catalog) ===
+    private void OnCreateNewSongClick() => this.ShowCreateSongPanel = true;
+
+    private async Task OnCreateSong()
     {
-        await this.SongService.DeleteAsync(this.CurrentSelectedSong.SongID);
+        var newSong = await SongService.CreateAsync(new SongDTO
+        {
+            BandID = this.CurrentBandID,
+            CreatedByAccountID = this.CurrentAccountID,
+            SongListTypeID = this.CurrentSongListTypeID,
+            Artist = this.NewCreateSongModel.Artist,
+            Title = this.NewCreateSongModel.Title
+        });
 
-        this.ClearSelectedSong();
-        await this.RemoveSongModal.HideAsync();
-
+        ShowToast(ToastType.Success, $"New song {newSong.Title} by {newSong.Artist} was created succesfully.");
+        this.ClearNewSongRequest();
         this.ClearSongCache();
         await this.RefreshGrid();
     }
 
-    private async Task OnHideRemoveSongModalClick()
-    {
-        this.ClearSelectedSong();
-        await this.RemoveSongModal.HideAsync();
-    }
-
-    private void ClearSelectedSong()
-    {
-        this.CurrentSelectedSong = new();
-    }
-
-    private void ClearSongCache()
-    {
-        this.Songs = Enumerable.Empty<SongDTO>();
-        this.MasterSongList = Enumerable.Empty<SongDTO>().ToList();
-    }
-
-    private async Task OnHideMusicSearchModalClick()
-    {
-        await this.MusicSearchModal.HideAsync();
-    }
-
-    private async Task OnSearchMusicCatalogClick()
-    {
-        await this.MusicSearchModal.ShowAsync();
-    }  
-
     private async Task HandleTrackSelected(SongDTO song)
     {
-        var newSong = await this.SongService.CreateAsync(new SongDTO
+        await SongService.CreateAsync(new SongDTO
         {
             BandID = this.CurrentBandID,
             CreatedByAccountID = this.CurrentAccountID,
             SongListTypeID = this.CurrentSongListTypeID,
             Artist = song.Artist,
-            Title = song.Title,
+            Title = song.Title
         });
 
         var currentSongListTypeName = this.SongListTypes.FirstOrDefault(slt => slt.SongListTypeID == this.CurrentSongListTypeID);
-        this.ToastMessages.Add(new ToastMessage
-        {
-            Type = ToastType.Success,
-            Message = $"{newSong.Title} was succesfully added to {currentSongListTypeName?.ListTypeName}.",
-        });
+        this.ShowToast(ToastType.Success, $"{song.Title} was succesfully added to {currentSongListTypeName?.ListTypeName}.");
 
         this.ClearSongCache();
         await this.RefreshGrid();
     }
 
-    
-    private async Task OnHideBulkSongRemovalModalClick()
+    private void OnCancelCreatingNewSong() => this.ClearNewSongRequest();
+
+    private void ClearNewSongRequest()
     {
-        await this.BulkSongRemovalModal.HideAsync();
+        this.NewCreateSongModel = new();
+        this.ShowCreateSongPanel = false;
     }
 
-    private async Task OnRemoveSelectedBulkSongsClick()
-    {
-        @foreach (var song in this.SelectedSongs)
-        {
-            await this.SongService.DeleteAsync(song.SongID);
-        }
-
-        await this.BulkSongRemovalModal.HideAsync();
-
-        this.ToastMessages.Add(new ToastMessage
-        {
-            Type = ToastType.Danger,
-            Message = $"The selected songs were succesfully removed.",
-        });
-
-        this.ClearSelectedTaskOption();
-        this.ClearSongCache();
-        await this.RefreshGrid();
-    }
-
-    private void ClearSelectedTaskOption()
-    {
-        this.SelectedTask = TaskOptions.Empty;
-    }
-
-    private async Task OnOpenBulkSongRemovalModal()
-    {
-        await this.BulkSongRemovalModal.ShowAsync();
-    }
-
-    private async Task OnChangeSongType(int selectedSongTypeIDToMoveTo)
-    {
-        var songsToChangeType = this.SelectedSongs
-            .Select(s => { s.SongListTypeID = selectedSongTypeIDToMoveTo; return s; })
-            .ToList();
-
-        foreach (var song in songsToChangeType)
-        {
-            await this.SongService.UpdateAsync(song);
-        }
-
-        var selectedSongType = this.SongListTypes.FirstOrDefault(slt => slt.SongListTypeID == selectedSongTypeIDToMoveTo);
-        this.ToastMessages.Add(new ToastMessage
-        {
-            Type = ToastType.Success,
-            Message = $"({songsToChangeType.Count()}) songs were succesfully move to {selectedSongType?.ListTypeName}.",
-        });
-
-        this.ClearSelectedTaskOption();
-        this.ClearSongCache();
-        await this.RefreshGrid();
-    }
-
+    // === 4. Search & Filtering ===
     private async Task OnSearchForSongs(ChangeEventArgs e)
     {
         this.SearchForSongCriteria = e.Value?.ToString() ?? string.Empty;
@@ -387,42 +316,63 @@ else
         await this.RefreshGrid();
     }
 
-    private async Task OnCreateNewSongClick()
+    // === 5. Bulk Actions (Move & Remove) ===
+    private void ClearSelectedTaskOption() => this.SelectedTask = TaskOptions.Empty;
+
+    private async Task OnChangeSongType(int targetTypeID)
     {
-        this.ShowCreateSongPanel = true;
-    }
-
-    private async Task OnCreateSong()
-    {
-        var newSong = await this.SongService.CreateAsync(new SongDTO
+        var createSongTasks = SelectedSongs.Select(s =>
         {
-            BandID = this.CurrentBandID,
-            CreatedByAccountID = this.CurrentAccountID,
-            SongListTypeID = this.CurrentSongListTypeID,
-            Artist = this.NewCreateSongModel.Artist,
-            Title = this.NewCreateSongModel.Title,
+            s.SongListTypeID = targetTypeID;
+            return SongService.UpdateAsync(s);
         });
+        await Task.WhenAll(createSongTasks);
 
-        this.ToastMessages.Add(new ToastMessage
-        {
-            Type = ToastType.Success,
-            Message = $"New song {newSong.Title} by {newSong.Artist} was created succesfully.",
-        });
-
-        this.ClearNewSongRequest();
+        var selectedSongType = this.SongListTypes.FirstOrDefault(slt => slt.SongListTypeID == targetTypeID);
+        ShowToast(ToastType.Success, $"({createSongTasks.Count()}) songs were succesfully moved to {selectedSongType?.ListTypeName}.");
+        this.ClearSelectedTaskOption();
         this.ClearSongCache();
         await this.RefreshGrid();
     }
 
-    private async Task OnCancelCreatingNewSong()
+    private async Task OnRemoveSelectedBulkSongsClick()
     {
-        this.ClearNewSongRequest();
+        var tasks = SelectedSongs.Select(s => SongService.DeleteAsync(s.SongID));
+        await Task.WhenAll(tasks);
+
+        await BulkSongRemovalModal.HideAsync();
+        ShowToast(ToastType.Danger, "The selected songs were succesfully removed.");
+        this.ClearSelectedTaskOption();
+        this.ClearSongCache();
+        await this.RefreshGrid();
     }
 
-    private void ClearNewSongRequest()
+    // === 6. Single Item Actions & Modals ===
+    private async Task OnConfirmRemoveSongClick(SongDTO song)
     {
-        this.NewCreateSongModel = new();
-        this.ShowCreateSongPanel = false;        
+        this.CurrentSelectedSong = song;
+        await this.RemoveSongModal.ShowAsync();
+    }
+
+    private async Task OnRemoveSelectedSongClick()
+    {
+        await SongService.DeleteAsync(CurrentSelectedSong.SongID);
+        await RemoveSongModal.HideAsync();
+        this.CurrentSelectedSong = new();
+        this.ClearSongCache();
+        await this.RefreshGrid();
+    }
+
+    private async Task OnOpenBulkSongRemovalModal() => await BulkSongRemovalModal.ShowAsync();
+    private async Task OnHideBulkSongRemovalModalClick() => await BulkSongRemovalModal.HideAsync();
+    private async Task OnSearchMusicCatalogClick() => await MusicSearchModal.ShowAsync();
+    private async Task OnHideMusicSearchModalClick() => await MusicSearchModal.HideAsync();
+    private async Task OnHideRemoveSongModalClick() => await RemoveSongModal.HideAsync();
+
+    // === 7. Helpers ===
+    private void ShowToast(ToastType type, string message)
+    {
+        this.ToastMessages.Add(new ToastMessage { Type = type, Message = message });
     }
 
     private class TaskOption
