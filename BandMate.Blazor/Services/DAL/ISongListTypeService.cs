@@ -1,6 +1,6 @@
 ﻿using BandMate.Blazor.DTO;
 
-namespace BandMate.Blazor.Services
+namespace BandMate.Blazor.Services.DAL
 {
     public interface ISongListTypeService
     {

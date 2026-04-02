@@ -3,7 +3,7 @@ using BandMate.Blazor.DTO;
 using BandMate.Domain.Core.Models;
 using BandMate.Domain.Core.Repositores;
 
-namespace BandMate.Blazor.Services
+namespace BandMate.Blazor.Services.DAL
 {
     public class SongListTypeService : ISongListTypeService
     {

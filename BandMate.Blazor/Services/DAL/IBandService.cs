@@ -1,7 +1,7 @@
 ﻿using BandMate.Blazor.DTO;
 using BandMate.Domain.Core.Models;
 
-namespace BandMate.Blazor.Services
+namespace BandMate.Blazor.Services.DAL
 {
     public interface IBandService
     {

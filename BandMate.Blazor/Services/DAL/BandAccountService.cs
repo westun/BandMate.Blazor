@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using BandMate.Domain.Core.Repositores;
 
-namespace BandMate.Blazor.Services
+namespace BandMate.Blazor.Services.DAL
 {
     public class BandAccountService : IBandAccountService
     {

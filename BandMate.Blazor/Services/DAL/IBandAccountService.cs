@@ -1,4 +1,4 @@
-﻿namespace BandMate.Blazor.Services
+﻿namespace BandMate.Blazor.Services.DAL
 {
     public interface IBandAccountService
     {
