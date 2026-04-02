@@ -187,44 +187,47 @@ else
 }
 
 @code {
+    // --- Parameters & Cascading Values ---
     [CascadingParameter]
     private Task<AuthenticationState> AuthState { get; set; } = default!;
 
+    [Parameter]
+    public EventCallback<SongDTO> OnTrackSelected { get; set; }
+
+    // --- Component State & UI Management ---
+    private bool IsLoading { get; set; } = true;
+    private MusicCatalogView CurrentView { get; set; } = MusicCatalogView.Empty;
     private int CurrentBandID { get; set; } = 0;
     private BandDTO CurrentBand { get; set; } = new();
 
-    private bool IsLoading { get; set; } = true;
-
+    // --- Search & Filtering State ---
     private MusicSearchRequest SearchRequest { get; set; } = new();
+    private string SearchForTracksCriteria { get; set; } = string.Empty;
+    private string SearchForAlbumsCriteria { get; set; } = string.Empty;
 
-    IEnumerable<Artist> ArtistSearchResults { get; set; } = Enumerable.Empty<Artist>();
-    IEnumerable<Album> AlbumSearchResults { get; set; } = Enumerable.Empty<Album>();
-
-    private MusicCatalogView CurrentView { get; set; } = MusicCatalogView.Empty;
-
+    // --- Data Collections (Results & Selections) ---
+    private IEnumerable<Artist> ArtistSearchResults { get; set; } = Enumerable.Empty<Artist>();
+    private IEnumerable<Album> AlbumSearchResults { get; set; } = Enumerable.Empty<Album>();
+    
     private Artist SelectedArtist { get; set; } = new();
     private Album SelectedAlbum { get; set; } = new();
     private IEnumerable<Song> SelectedArtistTracks { get; set; } = Enumerable.Empty<Song>();
 
-    private List<SubViewNavItem> SubViewNavItems { get; set; } = new List<SubViewNavItem>()
+    // --- Configuration / Static Data ---
+    private List<SubViewNavItem> SubViewNavItems { get; set; } = new()
     {
         new SubViewNavItem { Name = "By Album", View = MusicCatalogView.Albums },
         new SubViewNavItem { Name = "By Track", View = MusicCatalogView.Tracks },
     };
 
-    [Parameter]
-    public EventCallback<SongDTO> OnTrackSelected { get; set; }
-    
-    private string SearchForTracksCriteria { get; set; } = string.Empty;
-    private string SearchForAlbumsCriteria { get; set; } = string.Empty;
+    // --- Computed Properties ---
+    public List<Song> TracksFilteredBySearch => string.IsNullOrWhiteSpace(SearchForTracksCriteria)
+        ? SelectedArtistTracks.ToList()
+        : SelectedArtistTracks.Where(t => t.Name.Contains(SearchForTracksCriteria, StringComparison.OrdinalIgnoreCase)).ToList();
 
-    public List<Song> TracksFilteredBySearch => string.IsNullOrWhiteSpace(this.SearchForTracksCriteria)
-        ? this.SelectedArtistTracks.ToList()
-        : this.SelectedArtistTracks.Where(t => t.Name.Contains(this.SearchForTracksCriteria, StringComparison.OrdinalIgnoreCase)).ToList();
-
-    public List<Album> AlbumsFilteredBySearch => string.IsNullOrWhiteSpace(this.SearchForAlbumsCriteria)
-        ? this.AlbumSearchResults.ToList()
-        : this.AlbumSearchResults.Where(t => t.Name.Contains(this.SearchForAlbumsCriteria, StringComparison.OrdinalIgnoreCase)).ToList();
+    public List<Album> AlbumsFilteredBySearch => string.IsNullOrWhiteSpace(SearchForAlbumsCriteria)
+        ? AlbumSearchResults.ToList()
+        : AlbumSearchResults.Where(t => t.Name.Contains(SearchForAlbumsCriteria, StringComparison.OrdinalIgnoreCase)).ToList();
 
     protected override async Task OnInitializedAsync()
     {
@@ -251,98 +254,90 @@ else
         return 0;
     }
 
+    // --- Search & Selection Actions ---
     private async Task OnSearchForArtist()
     {
-        this.ToggleLoadingState(loading: true);
-
-        this.ClearSearchResults();
-
-        this.ArtistSearchResults = await this.ArtistRepository.SearchArtistsAsync(this.SearchRequest.Criteria);
-
-        this.CurrentView = MusicCatalogView.Artists;
-
-        this.ToggleLoadingState(loading: false);
+        ToggleLoadingState(loading: true);
+        ClearSearchResults();
+        ArtistSearchResults = await ArtistRepository.SearchArtistsAsync(SearchRequest.Criteria);
+        CurrentView = MusicCatalogView.Artists;
+        ToggleLoadingState(loading: false);
     }
 
     private async Task OnSelectArtist(Artist artist)
     {
-        this.ToggleLoadingState(loading: true);
-
-        this.SelectedArtist = artist;
-
-        this.AlbumSearchResults = await this.ArtistRepository.GetAlbums(artist.Id);
-
-        this.SelectedArtistTracks = this.AlbumSearchResults
+        ToggleLoadingState(loading: true);
+        SelectedArtist = artist;
+        AlbumSearchResults = await ArtistRepository.GetAlbums(artist.Id);
+        SelectedArtistTracks = AlbumSearchResults
             .SelectMany(a => a.Tracks)
             .OrderBy(t => t.Name)
             .ToList();
-
-        this.CurrentView = MusicCatalogView.Albums;
-
-        this.ToggleLoadingState(loading: false);
-    }
-
-    private void ToggleLoadingState(bool loading)
-    {
-        this.IsLoading = loading;
-        this.StateHasChanged();
-    }
-
-    private void ClearSearchResults()
-    {
-        this.ArtistSearchResults = Enumerable.Empty<Artist>();
-        this.AlbumSearchResults = Enumerable.Empty<Album>();
-        this.SelectedArtist = new();
-        this.SelectedAlbum = new();
+        CurrentView = MusicCatalogView.Albums;
+        ToggleLoadingState(loading: false);
     }
 
     private async Task OnSelectAlbum(Album album)
     {
-        this.SelectedAlbum = album;
-        this.SearchForAlbumsCriteria = string.Empty;
-        this.CurrentView = MusicCatalogView.TracksByAlbum;
-    }
-
-    private async Task NavigateBackToArtistView()
-    {
-        this.SelectedArtist = new();
-        this.AlbumSearchResults = Enumerable.Empty<Album>();
-        this.CurrentView = MusicCatalogView.Artists;
-    }
-
-    private async Task NavigateBackToAlbumView()
-    {
-        this.SelectedAlbum = new();
-        this.CurrentView = MusicCatalogView.Albums;
+        SelectedAlbum = album;
+        SearchForAlbumsCriteria = string.Empty;
+        CurrentView = MusicCatalogView.TracksByAlbum;
     }
 
     private async Task OnSelectTrack(Song track)
     {
         await OnTrackSelected.InvokeAsync(new SongDTO
         {
-            Artist = this.SelectedArtist.Name,
+            Artist = SelectedArtist.Name,
             Title = track.Name,
         });
     }
 
+    // --- Filter & View Logic ---
     private async Task OnTrackViewSelection(SubViewNavItem subViewNavItem)
     {
-        this.CurrentView = subViewNavItem.View;
-        this.SearchForTracksCriteria = string.Empty;
-        this.SearchForAlbumsCriteria = string.Empty;
-        this.StateHasChanged();
+        CurrentView = subViewNavItem.View;
+        SearchForTracksCriteria = string.Empty;
+        SearchForAlbumsCriteria = string.Empty;
+        StateHasChanged();
     }
 
-    private async Task OnSearchForTrack(ChangeEventArgs e)
+    private async Task OnSearchForTrack(ChangeEventArgs e) =>
+        SearchForTracksCriteria = e.Value?.ToString() ?? string.Empty;
+
+    private async Task OnSearchForAlbums(ChangeEventArgs e) =>
+        SearchForAlbumsCriteria = e.Value?.ToString() ?? string.Empty;
+
+    // --- Navigation ---
+    private async Task NavigateBackToArtistView()
     {
-        this.SearchForTracksCriteria = e.Value?.ToString() ?? string.Empty;
+        SelectedArtist = new();
+        AlbumSearchResults = Enumerable.Empty<Album>();
+        CurrentView = MusicCatalogView.Artists;
     }
 
-    private async Task OnSearchForAlbums(ChangeEventArgs e)
+    private async Task NavigateBackToAlbumView()
     {
-        this.SearchForAlbumsCriteria = e.Value?.ToString() ?? string.Empty;
+        SelectedAlbum = new();
+        CurrentView = MusicCatalogView.Albums;
     }
 
+    // --- Private Helpers ---
+    private void ToggleLoadingState(bool loading)
+    {
+        IsLoading = loading;
+        StateHasChanged();
+    }
+
+    private void ClearSearchResults()
+    {
+        ArtistSearchResults = Enumerable.Empty<Artist>();
+        AlbumSearchResults = Enumerable.Empty<Album>();
+        SelectedArtist = new();
+        SelectedAlbum = new();
+    }
+
+    // --- Classes ---
     public class MusicSearchRequest
     {
         [Required(ErrorMessage = "Search Criteria is required")]
