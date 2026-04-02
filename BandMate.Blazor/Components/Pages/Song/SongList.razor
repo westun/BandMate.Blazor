@@ -45,17 +45,8 @@ else
 
 @if (!IsLoading)
 {
-    <div class="row row-cols-lg-auto align-items-center mb-2">
-        <div class="col-12">
-            <label class="form-label">Search:</label>
-        </div>
-        <div class="col-12">
-            <TextInput @bind-Value="this.SearchForSongCriteria" @oninput="OnSearchForSongs" />
-        </div>
-        <div class="col-12">
-            <Button Color="ButtonColor.Primary" @onclick="ClearSearchResults">Clear</Button>
-        </div>
-    </div>
+    <SongSearchBar @bind-Criteria="SearchForSongCriteria"
+                   OnSearchTriggered="RefreshGrid" />
 }
 
 <Grid @ref="CurrentGrid"

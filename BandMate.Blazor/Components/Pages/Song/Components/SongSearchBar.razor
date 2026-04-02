@@ -1,0 +1,41 @@
+﻿
+<div class="row row-cols-lg-auto align-items-center mb-3 g-2">
+    <div class="col-12">
+        <label class="form-label fw-bold mb-0">Search:</label>
+    </div>
+    <div class="col-12">
+        <TextInput Value="@Criteria"
+                    ValueExpression="() => Criteria"
+                    placeholder="Artist or Title..."
+                    @oninput="OnInputChanged" />
+    </div>
+    <div class="col-12">
+        <Button Color="ButtonColor.Secondary" Outline="true" @onclick="Clear">
+            <Icon Name="IconName.X" /> Clear
+        </Button>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Criteria { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> CriteriaChanged { get; set; }
+    
+    [Parameter] public EventCallback OnSearchTriggered { get; set; }
+
+    private async Task OnInputChanged(ChangeEventArgs e)
+    {
+        var newValue = e.Value?.ToString() ?? string.Empty;
+        Criteria = newValue;
+        
+        await CriteriaChanged.InvokeAsync(newValue);
+        
+        await OnSearchTriggered.InvokeAsync();
+    }
+
+    private async Task Clear()
+    {
+        Criteria = string.Empty;
+        await CriteriaChanged.InvokeAsync(string.Empty);
+        await OnSearchTriggered.InvokeAsync();
+    }
+}
