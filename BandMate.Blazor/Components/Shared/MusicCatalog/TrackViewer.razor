@@ -1,5 +1,4 @@
-﻿@using BandMate.MusicCatalog.Models
-<div class="row mt-3">
+﻿<div class="row mt-3">
     <p>
         <span class="fs-3">Artist: <strong>@ArtistName</strong></span>
     </p>
@@ -55,7 +54,7 @@
     [Parameter] public string AlbumName { get; set; } = "";
     [Parameter] public string AlbumImageUrl { get; set; } = "";
     [Parameter] public string SearchCriteria { get; set; } = "";
-    [Parameter] public IEnumerable<Song> Tracks { get; set; } = [];
+    [Parameter] public IEnumerable<TrackDTO> Tracks { get; set; } = [];
     [Parameter] public EventCallback<ChangeEventArgs> OnSearch { get; set; }
-    [Parameter] public EventCallback<Song> OnTrackSelected { get; set; }
+    [Parameter] public EventCallback<TrackDTO> OnTrackSelected { get; set; }
 }

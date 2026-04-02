@@ -1,4 +1,5 @@
-﻿using BandMate.MusicCatalog.Persistence;
+﻿using BandMate.Blazor.Services;
+using BandMate.MusicCatalog.Persistence;
 
 namespace BandMate.Blazor.Configuration
 {
@@ -15,6 +16,8 @@ namespace BandMate.Blazor.Configuration
                     ClientSecret = builder.Configuration.GetValue<string>("Spotify:ClientSecret"),
                 };
             });
+
+            services.AddTransient<IMusicCatalogService, MusicCatalogService>();
 
             return services;
         }

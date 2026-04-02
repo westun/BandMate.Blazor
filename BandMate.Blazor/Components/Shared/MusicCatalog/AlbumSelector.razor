@@ -1,5 +1,4 @@
-﻿@using BandMate.MusicCatalog.Models
-<div class="row mt-3">
+﻿<div class="row mt-3">
     <p>
         <span class="fs-3">Artist: <strong>@ArtistName</strong></span>
     </p>
@@ -17,7 +16,7 @@
         <span class="fs-4">Select an album:</span>
     </div>
 
-    <MediaCardGrid TItem="Album"
+    <MediaCardGrid TItem="AlbumDTO"
                    Items="FilteredAlbums"
                    GetId="a => a.Id"
                    GetName="a => a.Name"
@@ -29,9 +28,9 @@
 
 @code {
     [Parameter] public string ArtistName { get; set; } = string.Empty;
-    [Parameter] public IEnumerable<Album> FilteredAlbums { get; set; } = [];
+    [Parameter] public IEnumerable<AlbumDTO> FilteredAlbums { get; set; } = [];
     [Parameter] public string SearchCriteria { get; set; } = string.Empty;
     
     [Parameter] public EventCallback<ChangeEventArgs> OnSearchChanged { get; set; }
-    [Parameter] public EventCallback<Album> OnAlbumSelected { get; set; }
+    [Parameter] public EventCallback<AlbumDTO> OnAlbumSelected { get; set; }
 }

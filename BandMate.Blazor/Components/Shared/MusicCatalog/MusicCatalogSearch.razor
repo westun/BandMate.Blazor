@@ -1,9 +1,6 @@
-﻿@using System.ComponentModel.DataAnnotations
-@using BandMate.MusicCatalog.Models
-@using BandMate.MusicCatalog.Persistence
-@rendermode InteractiveServer
+﻿@rendermode InteractiveServer
 @inject IBandService BandService
-@inject IArtistRepository ArtistRepository
+@inject IMusicCatalogService MusicCatalogService
 
 @if (IsLoading)
 {
@@ -21,7 +18,7 @@ else
         <div class="mt-3">
             <span class="fs-3">Select an artist:</span>
         </div>
-        <MediaCardGrid TItem="Artist"
+        <MediaCardGrid TItem="ArtistDTO"
                        Items="ArtistSearchResults"
                        GetId="a => a.Id" 
                        GetName="a => a.Name" 
@@ -77,12 +74,12 @@ else
     private string SearchForAlbumsCriteria { get; set; } = string.Empty;
 
     // --- Data Collections (Results & Selections) ---
-    private IEnumerable<Artist> ArtistSearchResults { get; set; } = Enumerable.Empty<Artist>();
-    private IEnumerable<Album> AlbumSearchResults { get; set; } = Enumerable.Empty<Album>();
+    private IEnumerable<ArtistDTO> ArtistSearchResults { get; set; } = Enumerable.Empty<ArtistDTO>();
+    private IEnumerable<AlbumDTO> AlbumSearchResults { get; set; } = Enumerable.Empty<AlbumDTO>();
 
-    private Artist SelectedArtist { get; set; } = new();
-    private Album SelectedAlbum { get; set; } = new();
-    private IEnumerable<Song> SelectedArtistTracks { get; set; } = Enumerable.Empty<Song>();
+    private ArtistDTO SelectedArtist { get; set; } = new();
+    private AlbumDTO SelectedAlbum { get; set; } = new();
+    private IEnumerable<TrackDTO> SelectedArtistTracks { get; set; } = Enumerable.Empty<TrackDTO>();
 
     // --- Configuration / Static Data ---
     private List<SubViewNavItem> SubViewNavItems { get; set; } = new()
@@ -92,11 +89,11 @@ else
     };
 
     // --- Computed Properties ---
-    public List<Song> TracksFilteredBySearch => string.IsNullOrWhiteSpace(SearchForTracksCriteria)
+    public List<TrackDTO> TracksFilteredBySearch => string.IsNullOrWhiteSpace(SearchForTracksCriteria)
         ? SelectedArtistTracks.ToList()
         : SelectedArtistTracks.Where(t => t.Name.Contains(SearchForTracksCriteria, StringComparison.OrdinalIgnoreCase)).ToList();
 
-    public List<Album> AlbumsFilteredBySearch => string.IsNullOrWhiteSpace(SearchForAlbumsCriteria)
+    public List<AlbumDTO> AlbumsFilteredBySearch => string.IsNullOrWhiteSpace(SearchForAlbumsCriteria)
         ? AlbumSearchResults.ToList()
         : AlbumSearchResults.Where(t => t.Name.Contains(SearchForAlbumsCriteria, StringComparison.OrdinalIgnoreCase)).ToList();
 
@@ -130,16 +127,16 @@ else
     {
         ToggleLoadingState(loading: true);
         ClearSearchResults();
-        ArtistSearchResults = await ArtistRepository.SearchArtistsAsync(SearchRequest.Criteria);
+        ArtistSearchResults = await MusicCatalogService.SearchArtistsAsync(SearchRequest.Criteria);
         CurrentView = MusicCatalogView.Artists;
         ToggleLoadingState(loading: false);
     }
 
-    private async Task OnSelectArtist(Artist artist)
+    private async Task OnSelectArtist(ArtistDTO artist)
     {
         ToggleLoadingState(loading: true);
         SelectedArtist = artist;
-        AlbumSearchResults = await ArtistRepository.GetAlbums(artist.Id);
+        AlbumSearchResults = await MusicCatalogService.GetAlbumsAsync(artist.Id);
         SelectedArtistTracks = AlbumSearchResults
             .SelectMany(a => a.Tracks)
             .OrderBy(t => t.Name)
@@ -148,14 +145,14 @@ else
         ToggleLoadingState(loading: false);
     }
 
-    private async Task OnSelectAlbum(Album album)
+    private async Task OnSelectAlbum(AlbumDTO album)
     {
         SelectedAlbum = album;
         SearchForAlbumsCriteria = string.Empty;
         CurrentView = MusicCatalogView.TracksByAlbum;
     }
 
-    private async Task OnSelectTrack(Song track)
+    private async Task OnSelectTrack(TrackDTO track)
     {
         await OnTrackSelected.InvokeAsync(new SongDTO
         {
@@ -183,7 +180,7 @@ else
     private async Task NavigateBackToArtistView()
     {
         SelectedArtist = new();
-        AlbumSearchResults = Enumerable.Empty<Album>();
+        AlbumSearchResults = Enumerable.Empty<AlbumDTO>();
         CurrentView = MusicCatalogView.Artists;
     }
 
@@ -202,13 +199,13 @@ else
 
     private void ClearSearchResults()
     {
-        ArtistSearchResults = Enumerable.Empty<Artist>();
-        AlbumSearchResults = Enumerable.Empty<Album>();
+        ArtistSearchResults = Enumerable.Empty<ArtistDTO>();
+        AlbumSearchResults = Enumerable.Empty<AlbumDTO>();
         SelectedArtist = new();
         SelectedAlbum = new();
     }
 
-    private IEnumerable<Song> GetTracksToDisplay()
+    private IEnumerable<TrackDTO> GetTracksToDisplay()
     {
         @if (CurrentView == MusicCatalogView.Tracks)
         {
@@ -216,7 +213,7 @@ else
         }
         else
         {
-            return SelectedAlbum.Tracks?.ToList() ?? new List<Song>();
+            return SelectedAlbum.Tracks?.ToList() ?? new List<TrackDTO>();
         }
     }
 }
