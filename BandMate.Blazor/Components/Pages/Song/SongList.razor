@@ -40,11 +40,7 @@ else
                      OnBulkRemoveClick="OnOpenBulkSongRemovalModal"
                      OnMoveSongs="OnChangeSongType"
                      @bind-SelectedTask="SelectedTask" />
-}
 
-
-@if (!IsLoading)
-{
     <SongSearchBar @bind-Criteria="SearchForSongCriteria"
                    OnSearchTriggered="RefreshGrid" />
 }
