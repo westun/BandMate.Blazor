@@ -86,15 +86,10 @@ else
     </GridColumn>
 </Grid>
 
-<Modal @ref="RemoveSongModal" Title="Are you sure?" OnHidden="OnHideRemoveSongModalClick">
-    <BodyTemplate>
-        Are you sure you want to remove the song: <strong>@CurrentSelectedSong?.Title</strong> by <strong>@CurrentSelectedSong?.Artist</strong>?
-    </BodyTemplate>
-    <FooterTemplate>
-        <Button Color="ButtonColor.Secondary" @onclick="OnHideRemoveSongModalClick">Cancel</Button>
-        <Button Color="ButtonColor.Danger" @onclick="OnRemoveSelectedSongClick">Remove</Button>
-    </FooterTemplate>
-</Modal>
+<RemoveSongModal @ref="RemoveSongModal"
+                 Song="this.CurrentSelectedSong"
+                 OnCancel="OnHideRemoveSongModalClick"
+                 OnConfirm="OnRemoveSelectedSongClick" />
 
 <Modal @ref="MusicSearchModal" Title="Search Music Catalog" OnHidden="OnHideMusicSearchModalClick">
     <BodyTemplate>
@@ -173,7 +168,7 @@ else
 
     // === 6. Component References (BlazorBootstrap / Library) ===
     private Grid<SongDTO> CurrentGrid = new();
-    private Modal RemoveSongModal = new();
+    private RemoveSongModal RemoveSongModal = default!;
     private Modal MusicSearchModal = new();
     private Modal BulkSongRemovalModal = new();
 
@@ -358,7 +353,7 @@ else
     private async Task OnHideBulkSongRemovalModalClick() => await BulkSongRemovalModal.HideAsync();
     private async Task OnSearchMusicCatalogClick() => await MusicSearchModal.ShowAsync();
     private async Task OnHideMusicSearchModalClick() => await MusicSearchModal.HideAsync();
-    private async Task OnHideRemoveSongModalClick() => await RemoveSongModal.HideAsync();
+    private async Task OnHideRemoveSongModalClick() => this.CurrentSelectedSong = new();
 
     // === 7. Helpers ===
     private void ShowToast(ToastType type, string message)

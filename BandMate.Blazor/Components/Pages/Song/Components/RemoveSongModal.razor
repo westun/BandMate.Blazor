@@ -1,0 +1,22 @@
+﻿<Modal @ref="modal" Title="Are you sure?" OnHidden="OnCancel">
+    <BodyTemplate>
+        @if (Song != null)
+        {
+            <p>Are you sure you want to remove the song: <strong>@Song.Title</strong> by <strong>@Song.Artist</strong>?</p>
+        }
+    </BodyTemplate>
+    <FooterTemplate>
+        <Button Color="ButtonColor.Secondary" @onclick="HideAsync">Cancel</Button>
+        <Button Color="ButtonColor.Danger" @onclick="OnConfirm">Remove</Button>
+    </FooterTemplate>
+</Modal>
+
+@code {
+    private Modal modal = default!;
+    [Parameter] public SongDTO? Song { get; set; }
+    [Parameter] public EventCallback OnConfirm { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    public Task ShowAsync() => modal.ShowAsync();
+    public Task HideAsync() => modal.HideAsync();
+}
