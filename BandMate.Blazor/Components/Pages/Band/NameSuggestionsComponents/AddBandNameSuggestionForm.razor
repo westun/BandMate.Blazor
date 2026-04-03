@@ -1,0 +1,62 @@
+﻿@using System.ComponentModel.DataAnnotations
+<div class="card bg-white border-light-subtle shadow-sm rounded-4 mb-5">
+    <div class="card-body p-3">
+        <EditForm Model="Request" OnValidSubmit="HandleSubmit">
+            <DataAnnotationsValidator />
+            
+            <div class="row g-3 align-items-center justify-content-center">
+                <div class="col-auto">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-primary bg-opacity-10 p-2 rounded-circle me-2">
+                            <i class="bi bi-plus-lg text-primary"></i>
+                        </div>
+                        <h5 class="mb-0 fw-bold text-dark">Add to Collage</h5>
+                    </div>
+                </div>
+
+                <div class="col-sm-5 col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0 text-muted">
+                            <i class="bi bi-music-note"></i>
+                        </span>
+                        <TextInput @bind-Value="Request.Name"
+                                   class="border-start-0"
+                                   placeholder="Enter band name..." />
+                    </div>
+                </div>
+
+                <div class="col-auto">
+                    <Button Type="ButtonType.Submit" Color="ButtonColor.Primary" Class="px-4 fw-bold">
+                        Add Band
+                    </Button>
+                </div>
+            </div>
+            
+            <div class="text-center mt-1">
+                <ValidationMessage For="@(() => Request.Name)" class="small text-danger" />
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback<string> OnBandAdded { get; set; }
+    
+    private BandRequest Request { get; set; } = new();
+
+    private async Task HandleSubmit()
+    {
+        if (!string.IsNullOrWhiteSpace(Request.Name))
+        {
+            await OnBandAdded.InvokeAsync(Request.Name);
+            Request = new();
+        }
+    }
+
+    public class BandRequest
+    {
+        [Required(ErrorMessage = "Give your band a name")]
+        [StringLength(50, ErrorMessage = "Keep it under 50 characters")]
+        public string Name { get; set; } = string.Empty;
+    }
+}

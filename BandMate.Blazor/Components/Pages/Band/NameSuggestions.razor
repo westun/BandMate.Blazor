@@ -1,4 +1,5 @@
 ﻿@page "/band/name-suggestions";
+@using BandMate.Blazor.Components.Pages.Band.NameSuggestionsComponents
 @attribute [Authorize]
 @rendermode InteractiveServer
 @inject IBandService BandService
@@ -12,10 +13,22 @@ else
 {
     <PageHeader Title="Band Name Suggestions" />
 
+    <AddBandNameSuggestionForm OnBandAdded="AddNewBandToList" />
+
+    @foreach (var band in Bands)
+    {
+        <BandBadge BandName="@band.Name"
+                    Rotation="@(Random.Shared.Next(-15, 15))"
+                    BgColor="@GetColor(band.BandID)"
+                    ShapeClass="@GetShape(band.BandID)"
+                    Size="@(Random.Shared.Next(90, 120))" />
+    }
 }
 
 @code {
     private bool IsLoading { get; set; } = true;
+
+    private List<BandDTO> Bands { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -24,6 +37,27 @@ else
         var currentBand = await BandService.GetDefaultBand(currentAccountID);
         var defaultBandID = currentBand?.BandID ?? 0;
 
+        Bands = (await BandService.GetAll(currentAccountID)).ToList();
+
         IsLoading = false;
     }
+
+    private void AddNewBandToList(string name)
+    {
+        // Add to your local list
+        Bands.Add(new BandDTO { Name = name, BandID = Bands.Count + 1 });
+        
+        // This tells Blazor to re-render the collage with the new item
+        StateHasChanged();
+    }
+
+    private string GetColor(int id) => (id % 4) switch
+    {
+        0 => "text-bg-primary",
+        1 => "text-bg-warning",
+        2 => "text-bg-danger",
+        _ => "text-bg-info"
+    };
+
+    private string GetShape(int id) => (id % 2 == 0) ? "rounded-circle" : "rounded-3";
 }

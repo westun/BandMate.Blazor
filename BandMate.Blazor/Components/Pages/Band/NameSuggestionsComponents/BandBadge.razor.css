@@ -1,0 +1,9 @@
+﻿.hover-lift:hover {
+    transform: scale(1.1);
+    z-index: 1000;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.5) !important;
+}
+
+.min-vh-50 {
+    min-height: 50vh;
+}

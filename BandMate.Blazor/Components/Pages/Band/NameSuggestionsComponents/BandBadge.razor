@@ -1,0 +1,17 @@
+﻿<div class="d-inline-block p-3" style="transform: rotate(@(Rotation)deg); transition: transform 0.2s;">
+    <div class="badge @BgColor @ShapeClass shadow d-flex align-items-center justify-content-center hover-lift"
+         style="width: @(Size)px; height: @(Size)px; cursor: pointer; white-space: normal;">
+        <div class="text-center">
+            <i class="bi bi-music-note d-block mb-1"></i>
+            <span style="font-size: 0.75rem;">@BandName</span>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string BandName { get; set; } = "Band";
+    [Parameter] public string BgColor { get; set; } = "text-bg-primary";
+    [Parameter] public string ShapeClass { get; set; } = "rounded-circle";
+    [Parameter] public int Rotation { get; set; } = 0;
+    [Parameter] public int Size { get; set; } = 100;
+}
