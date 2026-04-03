@@ -1,0 +1,51 @@
+﻿<div class="mt-5 pt-4 border-top">
+    <div class="card border-0 bg-light-subtle shadow-sm rounded-4">
+        <div class="card-body p-4">
+            <div class="row align-items-center">
+                <!-- Left Side: Title & Description -->
+                <div class="col-lg-5 mb-3 mb-lg-0">
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="bg-primary bg-opacity-10 p-2 rounded-circle me-3">
+                            <i class="bi bi-plus-circle-fill text-primary fs-4"></i>
+                        </div>
+                        <h3 class="mb-0 fw-bold text-dark">Create a new band</h3>
+                    </div>
+                    <p class="text-muted mb-0 ps-5 ms-2">Ready to start something new? Enter a name to get started.</p>
+                </div>
+
+                <!-- Right Side: The Form -->
+                <div class="col-lg-7">
+                    <EditForm Model="Model" OnValidSubmit="OnCreate">
+                        <DataAnnotationsValidator />
+                        <div class="d-flex flex-column flex-sm-row gap-2 justify-content-lg-end">
+                            <div class="flex-grow-1" style="max-width: 400px;">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0">
+                                        <i class="bi bi-music-note"></i>
+                                    </span>
+                                    <TextInput @bind-Value="Model.Name"
+                                               class="border-start-0"
+                                               placeholder="Band Name (e.g. The Electric Echoes)" />
+                                </div>
+                                <ValidationMessage For="@(() => Model.Name)" class="mt-1 small" />
+                            </div>
+                            <div>
+                                <Button Type="ButtonType.Submit" Color="ButtonColor.Primary" Class="px-4 py-2 fw-bold">
+                                    <i class="bi bi-plus-lg me-1"></i> Create Band
+                                </Button>
+                            </div>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public CreateBandModel Model { get; set; } = new();
+
+    [Parameter]
+    public EventCallback OnCreate { get; set; }
+}
