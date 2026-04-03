@@ -19,5 +19,16 @@ namespace BandMate.Domain.Persistence.Repositories
 
             return dbContext.BandNames.Where(bn => bn.BandID == bandID).ToList();
         }
+
+        public async Task<BandName> CreateAsync(BandName bandName)
+        {
+            using var dbContext = await dbContextFactory.CreateDbContextAsync();
+
+            dbContext.BandNames.Add(bandName);
+
+            await dbContext.SaveChangesAsync();
+
+            return bandName;
+        }
     }
 }

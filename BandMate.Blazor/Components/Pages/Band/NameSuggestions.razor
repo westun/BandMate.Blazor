@@ -29,7 +29,8 @@ else
 @code {
     private bool IsLoading { get; set; } = true;
 
-    private IEnumerable<BandNameDTO> BandNames { get; set; } = Enumerable.Empty<BandNameDTO>();
+    private List<BandNameDTO> BandNames { get; set; } = new();
+
     private int CurrentBandID { get; set; } = 0;
 
     protected override async Task OnInitializedAsync()
@@ -39,18 +40,20 @@ else
         var currentBand = await BandService.GetDefaultBand(currentAccountID);
         CurrentBandID = currentBand?.BandID ?? 0;
 
-        BandNames = await BandNameService.GetAllByBandID(CurrentBandID);
+        BandNames = (await BandNameService.GetAllByBandID(CurrentBandID)).ToList();
 
         IsLoading = false;
     }
 
-    private void AddNewBand(string name)
+    private async Task AddNewBand(string name)
     {
-        // var newBandName = 
-        // new BandNameDTO { Name = name, BandID = CurrentBandID }
+        var newBandName = await BandNameService.CreateAsync(new BandNameDTO
+        {
+            BandID = CurrentBandID,
+            Name = name,
+        });
 
-        // Add to your local list
-        // BandNames.Add();
+        BandNames.Add(newBandName);
         
         StateHasChanged();
     }

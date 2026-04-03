@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using BandMate.Blazor.DTO;
+using BandMate.Domain.Core.Models;
 using BandMate.Domain.Core.Repositores;
 
 namespace BandMate.Blazor.Services.DAL
@@ -22,6 +23,15 @@ namespace BandMate.Blazor.Services.DAL
             var bandNames = await this.bandNameRepository.GetAllByBandID(bandID);
 
             return this.mapper.Map<IEnumerable<BandNameDTO>>(bandNames);
+        }
+
+        public async Task<BandNameDTO> CreateAsync(BandNameDTO bandNameDTO)
+        {
+            var bandName = this.mapper.Map<BandName>(bandNameDTO);
+
+            var bandNameFromDatabase = await this.bandNameRepository.CreateAsync(bandName);
+
+            return this.mapper.Map<BandNameDTO>(bandNameFromDatabase);
         }
     }
 }
