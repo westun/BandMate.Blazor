@@ -1,0 +1,29 @@
+﻿@page "/band/name-suggestions";
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject IBandService BandService
+@inject IUserService UserService
+
+@if (IsLoading)
+{
+    <LoadingSpinner />
+}
+else
+{
+    <PageHeader Title="Band Name Suggestions" />
+
+}
+
+@code {
+    private bool IsLoading { get; set; } = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var currentAccountID = await this.UserService.GetCurrentAccountIDAsync();
+
+        var currentBand = await BandService.GetDefaultBand(currentAccountID);
+        var defaultBandID = currentBand?.BandID ?? 0;
+
+        IsLoading = false;
+    }
+}
