@@ -3,6 +3,7 @@
 @attribute [Authorize]
 @rendermode InteractiveServer
 @inject IBandService BandService
+@inject IBandNameService BandNameService
 @inject IUserService UserService
 
 @if (IsLoading)
@@ -13,14 +14,14 @@ else
 {
     <PageHeader Title="Band Name Suggestions" />
 
-    <AddBandNameSuggestionForm OnBandAdded="AddNewBandToList" />
+    <AddBandNameSuggestionForm OnBandAdded="AddNewBand" />
 
-    @foreach (var band in Bands)
+    @foreach (var bandName in BandNames)
     {
-        <BandBadge BandName="@band.Name"
+        <BandBadge BandName="@bandName.Name"
                     Rotation="@(Random.Shared.Next(-15, 15))"
-                    BgColor="@GetColor(band.BandID)"
-                    ShapeClass="@GetShape(band.BandID)"
+                    BgColor="@GetColor(bandName.ID)"
+                    ShapeClass="@GetShape(bandName.ID)"
                     Size="@(Random.Shared.Next(90, 120))" />
     }
 }
@@ -28,26 +29,29 @@ else
 @code {
     private bool IsLoading { get; set; } = true;
 
-    private List<BandDTO> Bands { get; set; } = new();
+    private IEnumerable<BandNameDTO> BandNames { get; set; } = Enumerable.Empty<BandNameDTO>();
+    private int CurrentBandID { get; set; } = 0;
 
     protected override async Task OnInitializedAsync()
     {
-        var currentAccountID = await this.UserService.GetCurrentAccountIDAsync();
+        var currentAccountID = await UserService.GetCurrentAccountIDAsync();
 
         var currentBand = await BandService.GetDefaultBand(currentAccountID);
-        var defaultBandID = currentBand?.BandID ?? 0;
+        CurrentBandID = currentBand?.BandID ?? 0;
 
-        Bands = (await BandService.GetAll(currentAccountID)).ToList();
+        BandNames = await BandNameService.GetAllByBandID(CurrentBandID);
 
         IsLoading = false;
     }
 
-    private void AddNewBandToList(string name)
+    private void AddNewBand(string name)
     {
+        // var newBandName = 
+        // new BandNameDTO { Name = name, BandID = CurrentBandID }
+
         // Add to your local list
-        Bands.Add(new BandDTO { Name = name, BandID = Bands.Count + 1 });
+        // BandNames.Add();
         
-        // This tells Blazor to re-render the collage with the new item
         StateHasChanged();
     }
 

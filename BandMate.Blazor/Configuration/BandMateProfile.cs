@@ -10,10 +10,11 @@ namespace BandMate.Blazor.Configuration
     {
         public BandMateProfile()
         {
+            this.CreateMap<Account, AccountDTO>().ReverseMap();
+            this.CreateMap<Band, BandDTO>().ReverseMap();
+            this.CreateMap<BandName, BandNameDTO>().ReverseMap();
             this.CreateMap<Domain.Core.Models.Song, SongDTO>().ReverseMap();
             this.CreateMap<SongListType, SongListTypeDTO>().ReverseMap();
-            this.CreateMap<Band, BandDTO>().ReverseMap();
-            this.CreateMap<Account, AccountDTO>().ReverseMap();
 
             this.CreateMap<Album, AlbumDTO>();
             this.CreateMap<Artist, ArtistDTO>();

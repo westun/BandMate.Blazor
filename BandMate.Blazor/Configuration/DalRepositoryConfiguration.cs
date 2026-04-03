@@ -12,6 +12,7 @@ namespace BandMate.Blazor.Configuration
             services.AddTransient<IBandRepository, BandRepository>();
             services.AddTransient<IAccountRepository, AccountRepository>();
             services.AddTransient<IBandAccountRepository, BandAccountRepository>();
+            services.AddTransient<IBandNameRepository, BandNameRepository>();
 
             return services;
         }
