@@ -102,8 +102,7 @@ else
 <Toasts class="p-3" Messages="ToastMessages" Placement="ToastsPlacement.BottomRight" AutoHide="true" />
 
 @code {
-    [CascadingParameter] 
-    private Task<AuthenticationState> AuthState { get; set; } = default!;
+    // --- 1. Parameters & Cascading Values ---
 
     // === 2. Core Data & Collections ===
     private BandDTO CurrentBand { get; set; } = new();

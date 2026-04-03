@@ -113,9 +113,6 @@ else
 <Toasts class="p-3" Messages="ToastMessages" Placement="ToastsPlacement.TopRight" AutoHide="true" />
 
 @code {
-    [CascadingParameter]
-    private Task<AuthenticationState> AuthState { get; set; } = default!;
-
     private List<SongListTypeDTO> SongListTypes { get; set; } = Enumerable.Empty<SongListTypeDTO>().ToList();
 
     private Modal RemoveSongTypeModal = new();

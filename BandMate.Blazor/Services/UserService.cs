@@ -4,35 +4,53 @@ namespace BandMate.Blazor.Services
 {
     public class UserService : IUserService
     {
-        private readonly AuthenticationStateProvider authStateProvider;
-        private int? cachedAccountId;
+        private readonly AuthenticationStateProvider _authStateProvider;
+
+        private int? _cachedAccountId;
+        private bool? _isAuthenticated;
 
         public UserService(AuthenticationStateProvider authStateProvider)
         {
-            this.authStateProvider = authStateProvider;
+            _authStateProvider = authStateProvider;
+        }
+
+        public async Task<bool> IsAuthenticatedAsync()
+        {
+            if (_isAuthenticated.HasValue) return _isAuthenticated.Value;
+
+            await InitializeAsync();
+            return _isAuthenticated ?? false;
         }
 
         public async Task<int> GetCurrentAccountIDAsync()
         {
-            if (this.cachedAccountId.HasValue)
-            {
-                return this.cachedAccountId.Value;
-            }
+            if (_cachedAccountId.HasValue) return _cachedAccountId.Value;
 
-            var authState = await this.authStateProvider.GetAuthenticationStateAsync();
+            await InitializeAsync();
+            return _cachedAccountId ?? 0;
+        }
+
+        private async Task InitializeAsync()
+        {
+            // Only run the expensive auth check once
+            var authState = await _authStateProvider.GetAuthenticationStateAsync();
             var user = authState.User;
 
-            if (user.Identity?.IsAuthenticated ?? false)
+            _isAuthenticated = user.Identity?.IsAuthenticated ?? false;
+
+            if (_isAuthenticated.Value)
             {
                 var claim = user.FindFirst(c => c.Type == "AccountID");
                 if (claim != null && int.TryParse(claim.Value, out var accountID))
                 {
-                    this.cachedAccountId = accountID;
-                    return accountID;
+                    _cachedAccountId = accountID;
                 }
             }
-
-            return 0;
+            else
+            {
+                _cachedAccountId = 0;
+            }
         }
     }
+
 }

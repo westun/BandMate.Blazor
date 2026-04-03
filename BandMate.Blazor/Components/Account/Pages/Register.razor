@@ -15,6 +15,7 @@
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
 @inject IAccountService AccountService
+@inject IUserService UserService
 
 <PageTitle>Register</PageTitle>
 
@@ -66,13 +67,10 @@
 
     private string? Message => identityErrors is null ? null : $"Error: {string.Join(", ", identityErrors.Select(error => error.Description))}";
 
-    [CascadingParameter]
-    private Task<AuthenticationState> AuthState { get; set; } = default!;
-
     protected override async Task OnInitializedAsync()
     {
-        var user = (await AuthState).User;
-        if (user.Identity?.IsAuthenticated == true)
+        var isAuthenticated = await UserService.IsAuthenticatedAsync();
+        if (isAuthenticated)
         {
             NavigationManager.NavigateTo("/");
         }

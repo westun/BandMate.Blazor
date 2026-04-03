@@ -57,9 +57,6 @@ else
 
 @code {
     // --- Parameters & Cascading Values ---
-    [CascadingParameter]
-    private Task<AuthenticationState> AuthState { get; set; } = default!;
-
     [Parameter]
     public EventCallback<SongDTO> OnTrackSelected { get; set; }
 

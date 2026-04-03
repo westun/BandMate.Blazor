@@ -24,9 +24,6 @@ else
 }
 
 @code {
-    [CascadingParameter]
-    private Task<AuthenticationState> AuthState { get; set; } = default!;
-
     private bool IsLoading { get; set; } = true;
 
     private IEnumerable<AccountDTO> BandMembers = Enumerable.Empty<AccountDTO>();

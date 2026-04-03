@@ -72,9 +72,6 @@ else
 }
 
 @code {
-    [CascadingParameter]
-    private Task<AuthenticationState> AuthState { get; set; } = default!;
-
     private List<BandDTO> Bands { get; set; } = Enumerable.Empty<BandDTO>().ToList();
 
     private bool IsLoading { get; set; } = true;

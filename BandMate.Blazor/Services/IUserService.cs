@@ -3,5 +3,6 @@
     public interface IUserService
     {
         Task<int> GetCurrentAccountIDAsync();
+        Task<bool> IsAuthenticatedAsync();
     }
 }

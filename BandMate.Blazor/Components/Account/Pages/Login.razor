@@ -10,6 +10,7 @@
 @inject ILogger<Login> Logger
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
+@inject IUserService UserService
 
 <PageTitle>Log in</PageTitle>
 
@@ -84,13 +85,10 @@
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
 
-    [CascadingParameter]
-    private Task<AuthenticationState> AuthState { get; set; } = default!;
-
     protected override async Task OnInitializedAsync()
     {
-        var user = (await AuthState).User;
-        if (user.Identity?.IsAuthenticated == true)
+        var isAuthenticated = await UserService.IsAuthenticatedAsync();
+        if (isAuthenticated)
         {
             NavigationManager.NavigateTo("/");
         }
