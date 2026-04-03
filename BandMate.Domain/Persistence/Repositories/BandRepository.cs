@@ -40,7 +40,7 @@ namespace BandMate.Domain.Persistence.Repositories
             if (defaultBand == null)
             {
                 //if no band is set to default, consider the first band the default, this way a band is always returned
-                defaultBand = await dbContext.Bands.FirstOrDefaultAsync();
+                defaultBand = await dbContext.Bands.FirstOrDefaultAsync(b => b.BandAccounts.Any(ba => ba.AccountID == accountID));
             }
 
             return defaultBand;
