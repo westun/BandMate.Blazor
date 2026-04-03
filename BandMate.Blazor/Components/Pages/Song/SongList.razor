@@ -58,29 +58,40 @@ else
       @bind-SelectedItems="this.SelectedSongs"
       SelectionMode="GridSelectionMode.Multiple"
       AllowDetailView="true">
-
-    <GridColumn TItem="SongDTO" HeaderText="Artist" PropertyName="Artist" SortString="Artist" SortKeySelector="item => item.Artist" StringComparison="StringComparison.OrdinalIgnoreCase">
-        @context.Artist
-    </GridColumn>
-    <GridColumn TItem="SongDTO" HeaderText="Title" PropertyName="Title" SortString="Title" SortKeySelector="item => item.Title" StringComparison="StringComparison.OrdinalIgnoreCase">
-        @context.Title
-    </GridColumn>
-    <GridColumn TItem="SongDTO" HeaderText="Created Date" PropertyName="CreatedDataForDisplay" SortString="CreatedDataForDisplay" SortKeySelector="item => item.CreatedDate">
-        @context.CreatedDateForDisplay
-    </GridColumn>
-    <GridColumn TItem="SongDTO" HeaderText="Bpm" PropertyName="Bpm" SortString="Bpm" SortKeySelector="item => item.Bpm">
-        @context.Bpm
-    </GridColumn>
-    <GridColumn TItem="SongDTO" HeaderText="KeySignature" PropertyName="KeySignature" SortString="KeySignature" SortKeySelector="item => item.KeySignature">
-        @context.KeySignature
-    </GridColumn>
-    <GridColumn TItem="SongDTO" HeaderText="Actions">
-        <Button Color="ButtonColor.Danger"
-                Class="ms-2"
-                @onclick="() => this.OnConfirmRemoveSongClick(context)" title="Remove Song">
-            <Icon Name="IconName.Trash" />
-        </Button>
-    </GridColumn>
+    
+    <GridColumns>
+        <GridColumn TItem="SongDTO" HeaderText="Artist" PropertyName="Artist" SortString="Artist" SortKeySelector="item => item.Artist" StringComparison="StringComparison.OrdinalIgnoreCase">
+            @context.Artist
+        </GridColumn>
+        <GridColumn TItem="SongDTO" HeaderText="Title" PropertyName="Title" SortString="Title" SortKeySelector="item => item.Title" StringComparison="StringComparison.OrdinalIgnoreCase">
+            @context.Title
+        </GridColumn>
+        <GridColumn TItem="SongDTO" HeaderText="Created Date" PropertyName="CreatedDataForDisplay" SortString="CreatedDataForDisplay" SortKeySelector="item => item.CreatedDate">
+            @context.CreatedDateForDisplay
+        </GridColumn>
+        <GridColumn TItem="SongDTO" HeaderText="Bpm" PropertyName="Bpm" SortString="Bpm" SortKeySelector="item => item.Bpm">
+            @context.Bpm
+        </GridColumn>
+        <GridColumn TItem="SongDTO" HeaderText="KeySignature" PropertyName="KeySignature" SortString="KeySignature" SortKeySelector="item => item.KeySignature">
+            @context.KeySignature
+        </GridColumn>
+        <GridColumn TItem="SongDTO" HeaderText="Actions">
+            <Button Color="ButtonColor.Danger"
+                    Class="ms-2"
+                    @onclick="() => this.OnConfirmRemoveSongClick(context)" title="Remove Song">
+                <Icon Name="IconName.Trash" />
+            </Button>
+        </GridColumn>
+    </GridColumns>
+    <GridDetailView TItem="SongDTO">
+        <div class="p-3 border-top bg-light">
+            <h5 class="mb-2">Song Details for @context.Title</h5>
+            <ul class="list-unstyled">
+                <li><strong>Album:</strong> Master Of Puppetsm</li>
+                <li><strong>Release Year:</strong> 1986</li>
+            </ul>
+        </div>
+    </GridDetailView>
 </Grid>
 
 <RemoveSongModal @ref="RemoveSongModal"
