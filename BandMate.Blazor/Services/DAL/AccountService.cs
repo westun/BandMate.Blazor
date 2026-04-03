@@ -18,6 +18,13 @@ namespace BandMate.Blazor.Services.DAL
             this.mapper = mapper;
         }
 
+        public async Task<IEnumerable<AccountDTO>> GetAllByBandID(int bandID)
+        {
+            var account = await this.accountRepository.GetAllByBandID(bandID);
+
+            return this.mapper.Map<IEnumerable<AccountDTO>>(account);
+        }
+
         public async Task<AccountDTO> CreateAsync(AccountDTO accountDTO)
         {
             var account = this.mapper.Map<Account>(accountDTO);

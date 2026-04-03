@@ -1,44 +1,50 @@
 ﻿@page "/band/members";
 @attribute [Authorize]
 @rendermode InteractiveServer
+@inject IAccountService AccountService
 @inject IBandAccountService BandAccountService
 @inject IBandService BandService
 
-@if (this.IsLoading)
+@if (IsLoading)
 {
     <LoadingSpinner />
 }
 else
 {
     <PageHeader Title="Band Members" />
+
+    @foreach (var member in BandMembers)
+    {
+        <div @key="member.AccountID">
+            <span class="bi bi-person-fill fs-1" aria-hidden="true"></span>
+            @member.FirstName @member.LastName
+        </div>
+    }
 }
 
 @code {
     [CascadingParameter]
     private Task<AuthenticationState> AuthState { get; set; } = default!;
 
-    private List<BandDTO> Bands { get; set; } = Enumerable.Empty<BandDTO>().ToList();
-
     private bool IsLoading { get; set; } = true;
-    
-    private int DefaultBandID { get; set; }
-    private int CurrentAccountID { get; set; }
+
+    private IEnumerable<AccountDTO> BandMembers = Enumerable.Empty<AccountDTO>();
 
     protected override async Task OnInitializedAsync()
     {
-        this.CurrentAccountID = await this.GetCurrentAccountID();
+        var currentAccountID = await GetCurrentAccountID();
 
-        this.Bands = (await this.BandService.GetAll(this.CurrentAccountID)).ToList();
+        var currentBand = await BandService.GetDefaultBand(currentAccountID);
+        var defaultBandID = currentBand?.BandID ?? 0;
 
-        var currentBand = await this.BandService.GetDefaultBand(this.CurrentAccountID);
-        this.DefaultBandID = currentBand?.BandID ?? 0;
+        BandMembers = await AccountService.GetAllByBandID(defaultBandID);
 
-        this.IsLoading = false;
+        IsLoading = false;
     }
      
     private async Task<int> GetCurrentAccountID()
     {
-        var authState = await this.AuthState;
+        var authState = await AuthState;
         var user = authState.User;
         if (user.Identity?.IsAuthenticated ?? false)
         {

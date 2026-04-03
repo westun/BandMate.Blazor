@@ -13,6 +13,16 @@ namespace BandMate.Domain.Persistence.Repositories
             this.dbContextFactory = dbContextFactory;
         }
 
+        public async Task<IEnumerable<Account>> GetAllByBandID(int bandID)
+        {
+            var dbContext = await dbContextFactory.CreateDbContextAsync();
+            
+            return await dbContext.BandAccounts
+                .Where(ba => ba.BandID == bandID)
+                .Select(ba => ba.Account)   
+                .ToListAsync();
+        }
+
         public async Task<Account> CreateAsync(Account account)
         {
             using var dbContext = await dbContextFactory.CreateDbContextAsync();
