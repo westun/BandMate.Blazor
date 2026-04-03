@@ -59,10 +59,10 @@ else
       SelectionMode="GridSelectionMode.Multiple"
       AllowDetailView="true">
 
-    <GridColumn TItem="SongDTO" HeaderText="Artist" PropertyName="Artist" SortString="Artist" SortKeySelector="item => item.Artist">
+    <GridColumn TItem="SongDTO" HeaderText="Artist" PropertyName="Artist" SortString="Artist" SortKeySelector="item => item.Artist" StringComparison="StringComparison.OrdinalIgnoreCase">
         @context.Artist
     </GridColumn>
-    <GridColumn TItem="SongDTO" HeaderText="Title" PropertyName="Title" SortString="Title" SortKeySelector="item => item.Title">
+    <GridColumn TItem="SongDTO" HeaderText="Title" PropertyName="Title" SortString="Title" SortKeySelector="item => item.Title" StringComparison="StringComparison.OrdinalIgnoreCase">
         @context.Title
     </GridColumn>
     <GridColumn TItem="SongDTO" HeaderText="Created Date" PropertyName="CreatedDataForDisplay" SortString="CreatedDataForDisplay" SortKeySelector="item => item.CreatedDate">
