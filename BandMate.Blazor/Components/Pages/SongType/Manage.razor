@@ -5,6 +5,7 @@
 @inject ISongListTypeService SongListTypeService
 @inject IBandService BandService
 @inject ISongService SongService
+@inject IUserService UserService
 
 @if (this.IsLoading)
 {
@@ -134,7 +135,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        var currentAccountID = await this.GetCurrentAccountID();
+        var currentAccountID = await this.UserService.GetCurrentAccountIDAsync();
 
         var currentBand = await this.BandService.GetDefaultBand(currentAccountID);
         this.CurrentBandID = currentBand?.BandID ?? 0;
@@ -144,21 +145,6 @@ else
         this.Songs = (await this.SongService.GetSongsByBandIDAsync(this.CurrentBandID)).ToList();
 
         this.IsLoading = false;
-    }
-
-    private async Task<int> GetCurrentAccountID()
-    {
-        var authState = await this.AuthState;
-        var user = authState.User;
-        if (user.Identity?.IsAuthenticated ?? false)
-        {
-            var accountIDClaim = user.Claims.FirstOrDefault(c => c.Type == "AccountID");
-            if (accountIDClaim != null && int.TryParse(accountIDClaim.Value, out int accountID))
-            {
-                return accountID;
-            }
-        }
-        return 0;
     }
 
     private async Task OnSortableListUpdate(SortableListEventArgs args)

@@ -6,6 +6,7 @@
 @inject ISongService SongService
 @inject ISongListTypeService SongListTypeService
 @inject IBandService BandService
+@inject IUserService UserService
 
 @if (this.IsLoading)
 {
@@ -167,7 +168,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        this.CurrentAccountID = await this.GetCurrentAccountID();
+        this.CurrentAccountID = await this.UserService.GetCurrentAccountIDAsync();
 
         this.CurrentBand = await this.BandService.GetDefaultBand(this.CurrentAccountID);
         this.CurrentBandID = this.CurrentBand?.BandID ?? 0;
@@ -175,18 +176,6 @@ else
         this.MasterSongList = (await this.SongService.GetSongsByBandIDAsync(this.CurrentBandID)).ToList();
         this.SongListTypes = (await this.SongListTypeService.GetBandIDAsync(this.CurrentBandID)).ToList();
         this.CurrentSongListTypeID = this.SongListTypes.FirstOrDefault()?.SongListTypeID ?? 0;
-    }
-
-    private async Task<int> GetCurrentAccountID()
-    {
-        var authState = await this.AuthState;
-        var user = authState.User;
-        if (user.Identity?.IsAuthenticated ?? false)
-        {
-            var claim = user.Claims.FirstOrDefault(c => c.Type == "AccountID");
-            if (int.TryParse(claim?.Value, out int id)) return id;
-        }
-        return 0;
     }
 
     // === 2. Navigation & Grid State ===

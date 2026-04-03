@@ -2,6 +2,7 @@
 
 @inject NavigationManager NavigationManager
 @inject IBandService BandService
+@inject IUserService UserService
 
 <nav class="navbar navbar-expand-lg bg-dark navbar-dark sticky-top">
     <div class="container-fluid">
@@ -87,7 +88,7 @@
     {
         currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
         NavigationManager.LocationChanged += OnLocationChanged;
-        var currentAccountID = await this.GetCurrentAccountID();
+        var currentAccountID = await this.UserService.GetCurrentAccountIDAsync();
         this.CurrentBand = await this.BandService.GetDefaultBand(currentAccountID);
     }
 
@@ -100,20 +101,5 @@
     public void Dispose()
     {
         NavigationManager.LocationChanged -= OnLocationChanged;
-    }
-
-    private async Task<int> GetCurrentAccountID()
-    {
-        var authState = await this.AuthState;
-        var user = authState.User;
-        if (user.Identity?.IsAuthenticated ?? false)
-        {
-            var accountIDClaim = user.Claims.FirstOrDefault(c => c.Type == "AccountID");
-            if (accountIDClaim != null && int.TryParse(accountIDClaim.Value, out int accountID))
-            {
-                return accountID;
-            }
-        }
-        return 0;
     }
 }

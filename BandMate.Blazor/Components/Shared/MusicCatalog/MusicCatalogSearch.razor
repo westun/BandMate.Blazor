@@ -1,6 +1,7 @@
 ﻿@rendermode InteractiveServer
 @inject IBandService BandService
 @inject IMusicCatalogService MusicCatalogService
+@inject IUserService UserService
 
 @if (IsLoading)
 {
@@ -99,27 +100,12 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        var currentAccountID = await GetCurrentAccountID();
+        var currentAccountID = await this.UserService.GetCurrentAccountIDAsync();
 
         CurrentBand = await BandService.GetDefaultBand(currentAccountID);
         CurrentBandID = CurrentBand?.BandID ?? 0;
 
         IsLoading = false;
-    }
-
-    private async Task<int> GetCurrentAccountID()
-    {
-        var authState = await AuthState;
-        var user = authState.User;
-        if (user.Identity?.IsAuthenticated ?? false)
-        {
-            var accountIDClaim = user.Claims.FirstOrDefault(c => c.Type == "AccountID");
-            if (accountIDClaim != null && int.TryParse(accountIDClaim.Value, out int accountID))
-            {
-                return accountID;
-            }
-        }
-        return 0;
     }
 
     // --- Search & Selection Actions ---

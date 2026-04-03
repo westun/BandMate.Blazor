@@ -3,6 +3,7 @@ using BandMate.Blazor.Components;
 using BandMate.Blazor.Components.Account;
 using BandMate.Blazor.Configuration;
 using BandMate.Blazor.Data;
+using BandMate.Blazor.Services;
 using BandMate.Domain.Persistence;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -59,6 +60,8 @@ namespace BandMate.Blazor
             builder.Services.AddBlazorBootstrap();
 
             builder.Services.ConfigureMusicCatalog(builder);
+
+            builder.Services.AddScoped<IUserService, UserService>();
 
             var app = builder.Build();
 
