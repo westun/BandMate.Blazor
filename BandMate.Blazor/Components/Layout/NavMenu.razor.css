@@ -89,12 +89,18 @@
         align-items: center;
         line-height: 3rem;
         width: 100%;
+        padding: 8px 16px;
     }
 
-.nav-item ::deep a.active {
-    background-color: rgba(255,255,255,0.37);
-    color: white;
-}
+    .nav-item ::deep a.active {
+        background-color: #f0f4ff; /* Light brand color */
+        color: #111827; /* Darker text for focus */
+        padding: 8px 16px;
+        border-radius: 9999px; /* Makes it a pill */
+        transition: all 0.3s ease;
+        position: relative;
+        font-weight: 500;
+    }
 
 .nav-item ::deep .nav-link:hover {
     background-color: rgba(255,255,255,0.1);
@@ -123,3 +129,4 @@
         overflow-y: auto;
     }
 }
+
