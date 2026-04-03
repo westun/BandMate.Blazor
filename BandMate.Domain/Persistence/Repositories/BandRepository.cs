@@ -35,8 +35,15 @@ namespace BandMate.Domain.Persistence.Repositories
         {
             using var dbContext = await dbContextFactory.CreateDbContextAsync();
 
-            return await dbContext.Bands
+            var defaultBand = await dbContext.Bands
                 .FirstOrDefaultAsync(b => b.BandAccounts.Any(ba => ba.AccountID == accountID && ba.Default));
+            if (defaultBand == null)
+            {
+                //if no band is set to default, consider the first band the default, this way a band is always returned
+                defaultBand = await dbContext.Bands.FirstOrDefaultAsync();
+            }
+
+            return defaultBand;
         }
 
         public async Task<Band> CreateAsync(Band band)
