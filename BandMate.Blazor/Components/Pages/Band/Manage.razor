@@ -1,5 +1,6 @@
 ﻿@page "/band/manage";
 @using System.ComponentModel.DataAnnotations
+@using BandMate.Blazor.Components.Pages.Band.ManageComponents
 @attribute [Authorize]
 @rendermode InteractiveServer
 @inject ISongListTypeService SongListTypeService
@@ -7,69 +8,69 @@
 @inject IBandAccountService BandAccountService
 @inject IUserService UserService
 
-@if (this.IsLoading)
+@if (IsLoading)
 {
-    <div class="mb-3">
-        <Spinner Type="SpinnerType.Dots" Color="SpinnerColor.Primary" Size="SpinnerSize.ExtraLarge" />
-    </div>
+    <LoadingSpinner />
 }
 else
 {
-    <h1 class="text-center">Manage Band(s)</h1>
+    <PageHeader Title="Manage Band(s)" />
 
-    @if(this.Bands.Any())
+    @if(Bands.Any())
     {
-        <h2>Select a band to manage</h2>
+        <SelectBandBanner />
     }
-    <div class="mb-4">
-        @foreach (var band in this.Bands)
-        {
-            var isDefaultBand = this.DefaultBandID == band.BandID;
+    
+    <BandManagementList Bands="Bands" 
+                        DefaultBandID="DefaultBandID"
+                        OnSelectBandToManage="SaveDefaultBand"/>
 
-            <div class="row my-3" @key="@band.BandID">
-                <div class="col-md-3">
-                    <span class="fs-3">@band.Name</span>
-                    @if (isDefaultBand)
-                    {
-                        <br />
-                        <em>(Currently managing)</em>
-                    }
-                </div>
-                <div class="col-md-9">
-                    <Button Color="ButtonColor.Primary"
-                            Class="ms-2"
-                            Disabled="@(isDefaultBand)"
-                            @onclick="() => this.SaveDefaultBand(band)">
-                        Manage
-                    </Button>
-                    <Button Color="ButtonColor.Primary"
-                            Class="ms-2">
-                        Edit Details
-                    </Button>
-                    <Button Color="ButtonColor.Danger"
-                            Class="ms-2">
-                        Remove
-                    </Button>
-                </div>
-            </div>
-        }
-    </div>
+    <div class="mt-5 pt-4 border-top">
+        <div class="card border-0 bg-light-subtle shadow-sm rounded-4">
+            <div class="card-body p-4">
+                <div class="row align-items-center">
+                    <!-- Left Side: Title & Description -->
+                    <div class="col-lg-5 mb-3 mb-lg-0">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="bg-primary bg-opacity-10 p-2 rounded-circle me-3">
+                                <i class="bi bi-plus-circle-fill text-primary fs-4"></i>
+                            </div>
+                            <h3 class="mb-0 fw-bold text-dark">Create a new band</h3>
+                        </div>
+                        <p class="text-muted mb-0 ps-5 ms-2">Ready to start something new? Enter a name to get started.</p>
+                    </div>
 
-    <h2>Create a new band</h2>
-    <EditForm Model="NewCreateBandRequest" OnValidSubmit="() => OnCreateBand()">
-        <DataAnnotationsValidator />
-        <div class="row row-cols-lg-auto g-3 align-items-center">
-            <div class="col-12">
-                <label class="visually-hidden">New Band Name:</label>
-                <TextInput @bind-Value="NewCreateBandRequest.Name" />
-                <ValidationMessage For="@(() => NewCreateBandRequest.Name)" />
-            </div>
-            <div class="col-12">
-                <Button Type="ButtonType.Submit" Color="ButtonColor.Primary">Create</Button>
+                    <!-- Right Side: The Form -->
+                    <div class="col-lg-7">
+                        <EditForm Model="NewCreateBandRequest" OnValidSubmit="OnCreateBand">
+                            <DataAnnotationsValidator />
+                            <div class="d-flex flex-column flex-sm-row gap-2 justify-content-lg-end">
+                                <div class="flex-grow-1" style="max-width: 400px;">
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white border-end-0">
+                                            <i class="bi bi-music-note"></i>
+                                        </span>
+                                        <TextInput @bind-Value="NewCreateBandRequest.Name"
+                                                   class="border-start-0"
+                                                   placeholder="Band Name (e.g. The Electric Echoes)" />
+                                    </div>
+                                    <ValidationMessage For="@(() => NewCreateBandRequest.Name)" class="mt-1 small" />
+                                </div>
+                                <div>
+                                    <Button Type="ButtonType.Submit" Color="ButtonColor.Primary" Class="px-4 py-2 fw-bold">
+                                        <i class="bi bi-plus-lg me-1"></i> Create Band
+                                    </Button>
+                                </div>
+                            </div>
+                        </EditForm>
+                    </div>
+                </div>
             </div>
         </div>
-    </EditForm>
+    </div>
 }
+
+<Toasts class="p-3" Messages="ToastMessages" Placement="ToastsPlacement.BottomRight" AutoHide="true" />
 
 @code {
     private List<BandDTO> Bands { get; set; } = Enumerable.Empty<BandDTO>().ToList();
@@ -81,37 +82,46 @@ else
 
     private CreateBandRequest NewCreateBandRequest { get; set; } = new();
 
+    private List<ToastMessage> ToastMessages { get; set; } = new();
+
     protected override async Task OnInitializedAsync()
     {
-        this.CurrentAccountID = await this.UserService.GetCurrentAccountIDAsync();
+        CurrentAccountID = await UserService.GetCurrentAccountIDAsync();
 
-        this.Bands = (await this.BandService.GetAll(this.CurrentAccountID)).ToList();
+        Bands = (await BandService.GetAll(CurrentAccountID)).ToList();
 
-        var currentBand = await this.BandService.GetDefaultBand(this.CurrentAccountID);
-        this.DefaultBandID = currentBand?.BandID ?? 0;
+        var currentBand = await BandService.GetDefaultBand(CurrentAccountID);
+        DefaultBandID = currentBand?.BandID ?? 0;
 
-        this.IsLoading = false;
+        IsLoading = false;
     }
 
     private async Task OnCreateBand()
     {
-        var newBand = await this.BandService
-            .CreateAsync(new BandDTO { Name = NewCreateBandRequest.Name }, this.CurrentAccountID);
+        var newBand = await BandService
+            .CreateAsync(new BandDTO { Name = NewCreateBandRequest.Name }, CurrentAccountID);
 
         //call set default band method that will set new band to 1 and all other bands to 0
-        await this.SaveDefaultBand(newBand);
+        await SaveDefaultBand(newBand);
 
-        this.Bands.Add(newBand);
+        Bands.Add(newBand);
 
-        this.NewCreateBandRequest.Name = string.Empty;
+        NewCreateBandRequest.Name = string.Empty;
+
+        ShowToast(ToastType.Success, $"You succesfully create the band: {newBand.Name}");
     }
 
     private async Task SaveDefaultBand(BandDTO band)
     {
-        await this.BandAccountService.SaveDefaultBandAsync(band.BandID, this.CurrentAccountID);
-        this.DefaultBandID = band.BandID;
+        await BandAccountService.SaveDefaultBandAsync(band.BandID, CurrentAccountID);
+        DefaultBandID = band.BandID;
 
-        this.StateHasChanged();
+        StateHasChanged();
+    }
+
+    private void ShowToast(ToastType type, string message)
+    {
+        ToastMessages.Add(new ToastMessage { Type = type, Message = message });
     }
 
     public class CreateBandRequest
