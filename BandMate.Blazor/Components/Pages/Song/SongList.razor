@@ -190,12 +190,6 @@ else
         await this.CurrentGrid.RefreshDataAsync();
     }
 
-    private void ClearSongCache()
-    {
-        this.Songs = Enumerable.Empty<SongDTO>();
-        this.MasterSongList = new();
-    }
-
     // === 3. Song Creation (Manual & Catalog) ===
     private void OnCreateNewSongClick() => this.ShowCreateSongPanel = true;
 
@@ -210,15 +204,17 @@ else
             Title = this.NewCreateSongModel.Title
         });
 
+        this.MasterSongList.Add(newSong);
+        this.SortMasterList();
+
         ShowToast(ToastType.Success, $"New song {newSong.Title} by {newSong.Artist} was created succesfully.");
         this.ClearNewSongRequest();
-        this.ClearSongCache();
         await this.RefreshGrid();
     }
 
     private async Task HandleTrackSelected(SongDTO song)
     {
-        await SongService.CreateAsync(new SongDTO
+        var newSong = await SongService.CreateAsync(new SongDTO
         {
             BandID = this.CurrentBandID,
             CreatedByAccountID = this.CurrentAccountID,
@@ -227,10 +223,12 @@ else
             Title = song.Title
         });
 
+        this.MasterSongList.Add(newSong);
+        this.SortMasterList();
+
         var currentSongListTypeName = this.SongListTypes.FirstOrDefault(slt => slt.SongListTypeID == this.CurrentSongListTypeID);
         this.ShowToast(ToastType.Success, $"{song.Title} was succesfully added to {currentSongListTypeName?.ListTypeName}.");
 
-        this.ClearSongCache();
         await this.RefreshGrid();
     }
 
@@ -255,11 +253,20 @@ else
         await this.RefreshGrid();
     }
 
+    private void SortMasterList()
+    {
+        this.MasterSongList = this.MasterSongList
+            .OrderBy(s => s.Artist, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(s => s.Title, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
     // === 5. Bulk Actions (Move & Remove) ===
     private void ClearSelectedTaskOption() => this.SelectedTask = TaskOptions.Empty;
 
     private async Task OnChangeSongType(int targetTypeID)
     {
+        //this will assign new ListTypeID (targetTypeID) to each song in SelectedSongs
         var createSongTasks = SelectedSongs.Select(s =>
         {
             s.SongListTypeID = targetTypeID;
@@ -270,7 +277,6 @@ else
         var selectedSongType = this.SongListTypes.FirstOrDefault(slt => slt.SongListTypeID == targetTypeID);
         ShowToast(ToastType.Success, $"({createSongTasks.Count()}) songs were succesfully moved to {selectedSongType?.ListTypeName}.");
         this.ClearSelectedTaskOption();
-        this.ClearSongCache();
         await this.RefreshGrid();
     }
 
@@ -279,10 +285,14 @@ else
         var tasks = SelectedSongs.Select(s => SongService.DeleteAsync(s.SongID));
         await Task.WhenAll(tasks);
 
+        foreach (var song in SelectedSongs)
+        {
+            this.MasterSongList.Remove(song);
+        }
+
         await BulkSongRemovalModal.HideAsync();
         ShowToast(ToastType.Danger, "The selected songs were succesfully removed.");
         this.ClearSelectedTaskOption();
-        this.ClearSongCache();
         await this.RefreshGrid();
     }
 
@@ -297,8 +307,11 @@ else
     {
         await SongService.DeleteAsync(CurrentSelectedSong.SongID);
         await RemoveSongModal.HideAsync();
+
+        this.MasterSongList.Remove(CurrentSelectedSong);
+
         this.CurrentSelectedSong = new();
-        this.ClearSongCache();
+
         await this.RefreshGrid();
     }
 
