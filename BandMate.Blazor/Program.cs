@@ -65,6 +65,8 @@ namespace BandMate.Blazor
 
             builder.Services.ConfigureBandStorage();
 
+            builder.Services.AddScoped<NavStateService>();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

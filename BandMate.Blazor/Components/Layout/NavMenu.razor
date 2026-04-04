@@ -1,5 +1,7 @@
 ﻿@implements IDisposable
 
+@rendermode InteractiveServer
+@inject NavStateService NavStateService
 @inject NavigationManager NavigationManager
 @inject IBandService BandService
 @inject IUserService UserService
@@ -12,7 +14,7 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <a class="navbar-brand" href="">
                 BandMate <span class="bi bi-music-note-beamed" aria-hidden="true"></span>
-                @(@CurrentBand?.Name != null ? "|" : "") &nbsp;@CurrentBand?.Name
+                @(@CurrentBand?.Name != null ? "|" : "") &nbsp;@NavStateService.BandName @* @CurrentBand?.Name *@
             </a>
             <ul class="navbar-nav me-auto mb-2 mb-lg-0 align-items-center">
                 <AuthorizeView>
@@ -84,8 +86,13 @@
     {
         currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
         NavigationManager.LocationChanged += OnLocationChanged;
-        var currentAccountID = await this.UserService.GetCurrentAccountIDAsync();
-        this.CurrentBand = await this.BandService.GetDefaultBand(currentAccountID);
+
+        var currentAccountID = await UserService.GetCurrentAccountIDAsync();
+        CurrentBand = await BandService.GetDefaultBand(currentAccountID);
+
+        NavStateService.UpdateBandName(CurrentBand?.Name ?? string.Empty);
+
+        NavStateService.OnChange += StateHasChanged;
     }
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)

@@ -6,6 +6,7 @@
 @inject IBandService BandService
 @inject IBandAccountService BandAccountService
 @inject IUserService UserService
+@inject NavStateService NavStateService
 
 @if (IsLoading)
 {
@@ -73,6 +74,8 @@ else
     {
         await BandAccountService.SaveDefaultBandAsync(band.BandID, CurrentAccountID);
         DefaultBandID = band.BandID;
+
+        NavStateService.UpdateBandName(band.Name);
 
         StateHasChanged();
     }
