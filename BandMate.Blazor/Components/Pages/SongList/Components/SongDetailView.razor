@@ -1,0 +1,73 @@
+﻿<div class="p-3 border-top bg-light">
+    <h5 class="mb-3">Song Details for @SongItem.Song.Title</h5>
+    @if (!string.IsNullOrEmpty(SongItem.UploadErrorMessage))
+    {
+        <div class="alert alert-danger mt-3 shadow-sm" role="alert">
+            <div class="d-flex align-items-center mb-1">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <strong>Upload Failed</strong>
+                <button type="button" class="btn-close ms-auto"
+                        @onclick="() => SongItem.UploadErrorMessage = string.Empty"
+                        aria-label="Close">
+                </button>
+            </div>
+            <ul class="mb-0 ps-3">
+                <li>@SongItem.UploadErrorMessage</li>
+            </ul>
+        </div>
+    }
+    else if (!string.IsNullOrEmpty(SongItem.UploadSuccessMessage))
+    {
+        <div class="alert alert-success mt-3 shadow-sm border-0" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+                <div>
+                    <strong>Upload Successful!</strong>
+                    <div class="small">
+                        @SongItem.UploadSuccessMessage
+                    </div>
+                </div>
+                <button type="button" class="btn-close ms-auto"
+                        @onclick="() => SongItem.UploadSuccessMessage = string.Empty"
+                        aria-label="Close">
+                </button>
+            </div>
+        </div>
+    }
+            
+    <div class="d-flex flex-wrap gap-3 align-items-end mb-3">
+        <SongFilePicker Label="Tablature"
+                        FileName="@SongItem.Song.TabFileName"
+                        Icon="bi-music-note-beamed"
+                        OnChange="@(e => HandleFileSelected(e, FileUploadType.Tab))" />
+
+        <SongFilePicker Label="Lyrics"
+                        FileName="@SongItem.Song.LyricFileName"
+                        Icon="bi-file-text"
+                        OnChange="@(e => HandleFileSelected(e, FileUploadType.Lyric))" />
+
+        <SongFilePicker Label="MP3"
+                        FileName="@SongItem.Song.Mp3FileName"
+                        Icon="bi-headphones"
+                        OnChange="@(e => HandleFileSelected(e, FileUploadType.MP3))" />
+
+        <SongFilePicker Label="Sheet Music"
+                        FileName="@SongItem.Song.SheetMusicFileName"
+                        Icon="bi-journal-text"
+                        OnChange="@(e => HandleFileSelected(e, FileUploadType.SheetMusic))" />
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback<SongEvents.SongFileChangedEventArgs> OnSongFileChange { get; set; }
+
+    [Parameter]
+    public SongListGridItemModel SongItem { get; set; } = new();
+
+    private async Task HandleFileSelected(InputFileChangeEventArgs e, FileUploadType fileUploadType)
+    {
+        var customArgs = new SongEvents.SongFileChangedEventArgs(e, SongItem, fileUploadType);
+        await OnSongFileChange.InvokeAsync(customArgs);
+    }
+}

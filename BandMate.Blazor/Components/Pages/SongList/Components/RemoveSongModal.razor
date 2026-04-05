@@ -1,8 +1,8 @@
 ﻿<Modal @ref="modal" Title="Are you sure?" OnHidden="OnCancel">
     <BodyTemplate>
-        @if (Song != null)
+        @if (SongModel.Song != null)
         {
-            <p>Are you sure you want to remove the song: <strong>@Song.Title</strong> by <strong>@Song.Artist</strong>?</p>
+            <p>Are you sure you want to remove the song: <strong>@SongModel.Song.Title</strong> by <strong>@SongModel.Song.Artist</strong>?</p>
         }
     </BodyTemplate>
     <FooterTemplate>
@@ -13,7 +13,7 @@
 
 @code {
     private Modal modal = default!;
-    [Parameter] public SongDTO? Song { get; set; }
+    [Parameter] public SongListGridItemModel? SongModel { get; set; }
     [Parameter] public EventCallback OnConfirm { get; set; }
     [Parameter] public EventCallback OnCancel { get; set; }
 

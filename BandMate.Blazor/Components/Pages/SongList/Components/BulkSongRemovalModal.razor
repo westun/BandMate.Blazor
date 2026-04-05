@@ -13,9 +13,9 @@
                 <tbody>
                     @foreach (var song in Songs ?? new())
                     {
-                        <tr @key="song.SongID">
-                            <td>@song.Artist</td>
-                            <td>@song.Title</td>
+                        <tr @key="song.Song.SongID">
+                            <td>@song.Song.Artist</td>
+                            <td>@song.Song.Title</td>
                         </tr>
                     }
                 </tbody>
@@ -30,7 +30,7 @@
 
 @code {
     private Modal modal = default!;
-    [Parameter] public HashSet<SongDTO>? Songs { get; set; }
+    [Parameter] public HashSet<SongListGridItemModel>? Songs { get; set; }
     [Parameter] public EventCallback OnConfirm { get; set; }
     [Parameter] public EventCallback OnCancel { get; set; }
 

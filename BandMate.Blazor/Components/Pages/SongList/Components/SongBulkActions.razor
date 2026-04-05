@@ -55,7 +55,7 @@
 }
 
 @code {
-    [Parameter] public HashSet<SongDTO> SelectedSongs { get; set; } = new();
+    [Parameter] public HashSet<SongListGridItemModel> SelectedSongs { get; set; } = new();
     [Parameter] public IEnumerable<SongListTypeDTO> AvailableTypes { get; set; } = new List<SongListTypeDTO>();
     [Parameter] public int CurrentTypeId { get; set; }
 

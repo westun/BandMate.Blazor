@@ -62,7 +62,7 @@ namespace BandMate.Blazor.Storage
 
             var sasBuilder = new BlobSasBuilder
             {
-                Identifier = policyID, // Reference the Stored Access Policy ID
+                Identifier = policyID,
                 BlobContainerName = containerName,
                 BlobName = fileName,
                 Resource = "b",

@@ -1,0 +1,67 @@
+﻿<div class="flex-fill" style="min-width: 200px; max-width: 250px;">
+    <label class="form-label x-small fw-bold text-uppercase text-muted mb-1">@Label</label>
+    
+    @if (string.IsNullOrEmpty(FileName) || ReplaceFile)
+    {
+        <div class="input-group input-group-sm shadow-sm">
+            <span class="input-group-text bg-white border-light-subtle">
+                <i class="bi @Icon text-primary"></i>
+            </span>
+            <InputFile OnChange="OnInputFileChange" class="form-control border-light-subtle" />
+            @if (ReplaceFile)
+            {
+                <Button Color="ButtonColor.Secondary"
+                        Size="ButtonSize.Small"
+                        @onclick="OnCancelReplaceClick">
+                    Cancel
+                </Button>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="d-grid">
+            <div class="d-flex align-items-center justify-content-center">
+                <a class="btn btn-sm btn-secondary"
+                       href="@FileName" target="_blank">
+                    <i class="bi bi-file-earmark-arrow-down me-2"></i> View @Label
+                </a>
+                <Button Color="ButtonColor.Danger" 
+                        Size="ButtonSize.Small"
+                        @onclick="OnReplaceFileClick">
+                    Replace File
+                </Button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Label { get; set; } = "File";
+    [Parameter] public string? FileName { get; set; }
+    [Parameter] public string Icon { get; set; } = "bi-cloud-upload";
+
+    [Parameter] public EventCallback<InputFileChangeEventArgs> OnChange { get; set; }
+    [Parameter] public EventCallback<InputFileChangeEventArgs> OnReplaceFile { get; set; }
+
+    private bool ReplaceFile { get; set; } 
+
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        await OnChange.InvokeAsync(e);
+
+        ReplaceFile = false;
+    }
+
+    private async Task OnReplaceFileClick()
+    {
+        ReplaceFile = true;
+    }
+
+    private async Task OnCancelReplaceClick()
+    {
+        ReplaceFile = false;
+    }
+
+    
+}
