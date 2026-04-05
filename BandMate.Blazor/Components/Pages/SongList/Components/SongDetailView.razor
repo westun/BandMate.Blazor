@@ -60,10 +60,10 @@
 
 @code {
     [Parameter]
-    public EventCallback<SongEvents.SongFileChangedEventArgs> OnSongFileChange { get; set; }
+    public SongListGridItemModel SongItem { get; set; } = new();
 
     [Parameter]
-    public SongListGridItemModel SongItem { get; set; } = new();
+    public EventCallback<SongEvents.SongFileChangedEventArgs> OnSongFileChange { get; set; }
 
     private async Task HandleFileSelected(InputFileChangeEventArgs e, FileUploadType fileUploadType)
     {

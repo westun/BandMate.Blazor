@@ -17,6 +17,11 @@ namespace BandMate.Blazor.Storage
 
         public async Task<UploadBlobResult> UploadBlobAsync(string containerName, string fileName, Stream content, string contentType)
         {
+            return await this.UploadBlobAsync(containerName, fileName, content, contentType, null);
+        }
+
+        public async Task<UploadBlobResult> UploadBlobAsync(string containerName, string fileName, Stream content, string contentType, Progress<long> progressHandler)
+        {
             var containerClient = this.blobServiceClient.GetBlobContainerClient(containerName.ToLower());
             await containerClient.CreateIfNotExistsAsync();
 
@@ -25,6 +30,19 @@ namespace BandMate.Blazor.Storage
             {
                 HttpHeaders = new BlobHttpHeaders { ContentType = contentType }
             };
+
+            if (progressHandler is not null)
+            {
+                options.ProgressHandler = progressHandler;
+                //this will allow progress bars to show updates more often for smaller, and bigger, files
+                //until able to test in a hosted environment, this is a mute point
+                //options.TransferOptions = new StorageTransferOptions
+                //{
+                //    // Smaller chunks (e.g., 512KB) force the progress handler to fire more often
+                //    InitialTransferSize = 512 * 1024,
+                //    MaximumTransferSize = 512 * 1024
+                //};
+            }
 
             await blobClient.UploadAsync(content, options);
 

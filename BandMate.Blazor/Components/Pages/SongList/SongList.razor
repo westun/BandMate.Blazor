@@ -87,7 +87,7 @@ else
     </GridColumns>
 
     <GridDetailView TItem="SongListGridItemModel">
-        <SongDetailView OnSongFileChange="HandleFileSelected" 
+        <SongDetailView OnSongFileChange="HandleFileSelected"
                         SongItem="@context" />
     </GridDetailView>
 </Grid>
@@ -109,6 +109,25 @@ else
                      OnCancel="OnHideBulkSongRemovalModalClick" />
 
 <Toasts class="p-3" Messages="ToastMessages" Placement="ToastsPlacement.BottomRight" AutoHide="true" />
+
+@if (IsUploading)
+{
+    <div class="upload-overlay d-flex flex-column align-items-center justify-content-center">
+        <div class="upload-card shadow-lg p-4 bg-white rounded-3">
+            <h5 class="mb-3 text-primary">
+                <i class="bi bi-cloud-arrow-up-fill me-2"></i>Uploading...
+            </h5>
+            <Progress Height="25" Class="mb-2">
+                <ProgressBar @ref="FileUploadProgressBar"
+                             Color="ProgressColor.Primary" />
+            </Progress>
+            <div class="d-flex justify-content-between small text-muted">
+                <span>Uploading</span>
+                <span>@UploadPercentageDisplay</span>
+            </div>
+        </div>
+    </div>
+}
 
 @code {
     // --- 1. Parameters & Cascading Values ---
@@ -145,6 +164,11 @@ else
     private RemoveSongModal RemoveSongModal = default!;
     private Modal MusicSearchModal = new();
     private BulkSongRemovalModal BulkSongRemovalModal = new();
+
+    // File upload 
+    private ProgressBar FileUploadProgressBar { get; set; }
+    private bool IsUploading { get; set; }
+    private string UploadPercentageDisplay { get; set; } = "0%";
 
     private async Task<GridDataProviderResult<SongListGridItemModel>> SongDataProvider(GridDataProviderRequest<SongListGridItemModel> request)
     {
@@ -339,6 +363,10 @@ else
     // ==== File Upload === 
     private async Task HandleFileSelected(SongEvents.SongFileChangedEventArgs args)
     {
+        this.IsUploading = true;
+        StateHasChanged();
+        await Task.Delay(1000); //hack: try to avoid the flicker effect for small files when it opens and closes too fast
+
         var songModel = args.SongModel;
         var fileUploadType = args.FileUploadType;
 
@@ -354,20 +382,41 @@ else
                 return;
             }
 
-            var maxFileSize = 1024 * 1024 * 10; // 10MB limit
+            var progressHandler = new Progress<long>(async progress =>
+            {
+                double percentage = (double)progress / file.Size * 100;
+
+                // Use InvokeAsync to ensure the UI thread handles the update
+                await InvokeAsync(async () =>
+                {
+                    FileUploadProgressBar.SetWidth(percentage);
+                    FileUploadProgressBar.SetLabel($"{(int)percentage}%");
+                    UploadPercentageDisplay = $"{(int)percentage}%";
+                    StateHasChanged();
+                    await Task.Yield();
+                });
+            });
+
+            var maxFileSize = 1024 * 1024 * 30; // 10MB limit
             using var stream = file.OpenReadStream(maxFileSize);
+
             var uploadResult = await BandResourceManager.UploadResourceAsync(
                 bandId: CurrentBandID,
                 fileName: file.Name,
                 content: stream,
-                contentType: file.ContentType
+                contentType: file.ContentType,
+                progressHandler: progressHandler
             );
+
+            StateHasChanged();
 
             if (uploadResult.Errors?.Any() ?? false)
             {
                 songModel.UploadErrorMessage = string.Join(" | ", uploadResult.Errors);
                 return;
             }
+
+            await Task.Delay(1000); //hack: try to allow progress bar to always display that it's at 100% when it's done
 
             AssignFileNamesForSong(songModel.Song, fileUploadType, uploadResult.Url);
 
@@ -384,8 +433,15 @@ else
         }
         finally
         {
+            ResetProgressBar();
             StateHasChanged();
         }
+    }
+
+    private void ResetProgressBar()
+    {
+        IsUploading = false;
+        UploadPercentageDisplay = "0%";
     }
 
     private void AssignFileNamesForSong(SongDTO song, FileUploadType fileUploadType, string blobFullUrl)

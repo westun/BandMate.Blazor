@@ -1,6 +1,5 @@
 ﻿using BandMate.Blazor.Security;
 using BandMate.Blazor.Storage.Models;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace BandMate.Blazor.Storage
 {
@@ -23,6 +22,11 @@ namespace BandMate.Blazor.Storage
 
         public async Task<UploadBandResourceResult> UploadResourceAsync(int bandId, string fileName, Stream content, string contentType)
         {
+            return await this.UploadResourceAsync(bandId, fileName, content, contentType, null);
+        }
+
+        public async Task<UploadBandResourceResult> UploadResourceAsync(int bandId, string fileName, Stream content, string contentType, Progress<long> progressHandler)
+        {
             if (!this.fileUploadValidator.IsExtensionAllowed(fileName))
             {
                 return this.CreateBandResourceResult("Invalid file extension");
@@ -31,7 +35,7 @@ namespace BandMate.Blazor.Storage
             try
             {
                 var containerName = GetBlobStorageSafeBandName(bandId);
-                var blobUploadResult = await this.blobService.UploadBlobAsync(containerName, fileName, content, contentType);
+                var blobUploadResult = await this.blobService.UploadBlobAsync(containerName, fileName, content, contentType, progressHandler);
                 return new UploadBandResourceResult { Url = blobUploadResult.Url };
 
             }

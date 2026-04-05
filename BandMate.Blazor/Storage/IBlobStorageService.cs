@@ -9,5 +9,6 @@ namespace BandMate.Blazor.Storage
         Task<string> GetSasUrlWithPolicyAsync(string containerName, string fileName, string policyID);
         Task<List<string>> ListBlobsAsync(string containerName);
         Task<UploadBlobResult> UploadBlobAsync(string containerName, string fileName, Stream content, string contentType);
+        Task<UploadBlobResult> UploadBlobAsync(string containerName, string fileName, Stream content, string contentType, Progress<long> progressHandler);
     }
 }

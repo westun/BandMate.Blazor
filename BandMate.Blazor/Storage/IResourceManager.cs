@@ -8,5 +8,6 @@ namespace BandMate.Blazor.Storage
         Task<List<string>> GetFilesAsync(int bandId);
         Task<string> GetSasUrlAsync(int bandId, string fileName);
         Task<UploadBandResourceResult> UploadResourceAsync(int bandId, string fileName, Stream content, string contentType);
+        Task<UploadBandResourceResult> UploadResourceAsync(int bandId, string fileName, Stream content, string contentType, Progress<long> progressHandler);
     }
 }
