@@ -66,6 +66,20 @@ namespace BandMate.Domain.Persistence.Repositories
 
             songFromDB.SongListTypeID = song.SongListTypeID;
 
+            songFromDB.TabFileName = song.TabFileName;
+            songFromDB.SheetMusicFileName = song.SheetMusicFileName;
+            songFromDB.LyricFileName = song.LyricFileName;
+            songFromDB.Mp3FileName = song.Mp3FileName;
+
+            songFromDB.LyricURL = song.LyricURL;
+            songFromDB.YoutubeURL = song.YoutubeURL;
+            songFromDB.LyricURL = song.LyricURL;
+
+            songFromDB.Bpm = song.Bpm;
+            songFromDB.KeySignature = song.KeySignature;
+
+            songFromDB.Notes = song.Notes;
+
             await dbContext.SaveChangesAsync();
 
             return songFromDB;

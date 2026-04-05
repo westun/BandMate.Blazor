@@ -3,6 +3,7 @@ using BandMate.Blazor.Components;
 using BandMate.Blazor.Components.Account;
 using BandMate.Blazor.Configuration;
 using BandMate.Blazor.Data;
+using BandMate.Blazor.Security;
 using BandMate.Blazor.Services;
 using BandMate.Domain.Persistence;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -66,6 +67,8 @@ namespace BandMate.Blazor
             builder.Services.ConfigureBandStorage();
 
             builder.Services.AddScoped<NavStateService>();
+
+            builder.Services.AddScoped<IFileUploadValidator, FileUploadValidator>();
 
             var app = builder.Build();
 

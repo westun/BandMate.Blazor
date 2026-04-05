@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using BandMate.Blazor.DTO;
+using BandMate.Blazor.Storage;
 using BandMate.Domain.Core.Models;
 using BandMate.Domain.Core.Repositores;
 
@@ -9,13 +10,16 @@ namespace BandMate.Blazor.Services.DAL
     {
         private readonly ISongRepository songRepository;
         private readonly IMapper mapper;
+        private readonly IBandResourceManager bandResourceManager;
 
         public SongService(
             ISongRepository songRepository,
-            IMapper mapper)
+            IMapper mapper,
+            IBandResourceManager bandResourceManager)
         {
             this.songRepository = songRepository;
             this.mapper = mapper;
+            this.bandResourceManager = bandResourceManager;
         }
 
         public async Task<IEnumerable<SongDTO>> GetSongsByBandIDAsync(int bandID)
@@ -31,6 +35,15 @@ namespace BandMate.Blazor.Services.DAL
                 s.CreatedDateForDisplay = s.CreatedDate.ToString("d");
                 return s;
             }).ToList();
+
+            foreach (var song in songDTOs)
+            {
+                if (!string.IsNullOrWhiteSpace(song.TabFileName))
+                {
+                    song.TabFileName = await this.bandResourceManager
+                        .GetSasUrlAsync(bandID, Path.GetFileName(song.TabFileName));
+                }
+            }
 
             return songDTOs;
         }

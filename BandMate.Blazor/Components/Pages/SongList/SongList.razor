@@ -1,5 +1,5 @@
 ﻿@page "/song/list";
-@using BandMate.Blazor.Components.Pages.Song.SongListComponents
+@using BandMate.Blazor.Components.Pages.SongList.Components
 @using System.ComponentModel.DataAnnotations
 @attribute [Authorize]
 @rendermode InteractiveServer
@@ -7,6 +7,8 @@
 @inject ISongListTypeService SongListTypeService
 @inject IBandService BandService
 @inject IUserService UserService
+@inject IBandResourceManager BandResourceManager
+@inject IFileUploadValidator FileValidator
 
 @if (this.IsLoading)
 {
@@ -86,10 +88,61 @@ else
     <GridDetailView TItem="SongDTO">
         <div class="p-3 border-top bg-light">
             <h5 class="mb-2">Song Details for @context.Title</h5>
-            <ul class="list-unstyled">
-                <li><strong>Album:</strong> Master Of Puppetsm</li>
-                <li><strong>Release Year:</strong> 1986</li>
-            </ul>
+            @if (UploadErrorMessages.Any())
+            {
+                <div class="alert alert-danger mt-3 shadow-sm" role="alert">
+                    <div class="d-flex align-items-center mb-1">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <strong>Upload Failed</strong>
+                    </div>
+                    <ul class="mb-0 ps-3">
+                        @foreach (var error in UploadErrorMessages)
+                        {
+                            <li>@error</li>
+                        }
+                    </ul>
+                </div>
+            }
+            else if (!string.IsNullOrEmpty(UploadSuccessMessage))
+            {
+                <div class="alert alert-success mt-3 shadow-sm border-0" role="alert">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+                        <div>
+                            <strong>Upload Successful!</strong>
+                            <div class="small">
+                                @UploadSuccessMessage
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close ms-auto"
+                                @onclick="() => UploadSuccessMessage = string.Empty"
+                                aria-label="Close">
+                        </button>
+                    </div>
+                </div>
+            }
+            <div class="mb-3">
+                @if (string.IsNullOrEmpty(context.TabFileName))
+                {
+                    <div class="upload-container mb-5 ">        
+                        <label for="file-upload" class="drop-zone w-100">
+                            <div class="text-center p-5">
+                                <i class="bi bi-cloud-arrow-up fs-1 text-primary"></i>
+                                <h4 class="mt-3">Drag & Drop Files Here</h4>
+                                <p class="text-muted">Or click to browse from your computer</p>
+                                <InputFile id="file-upload" OnChange="@(e => HandleFileSelected(e, context, FileUploadType.Tab))" class="d-none" multiple />
+                            </div>
+                        </label>
+                    </div>
+
+                    @* <label class="form-label small fw-bold">Select File</label>
+                    <InputFile OnChange="@(e => HandleFileSelected(e, context, FileUploadType.Tab))" class="form-control border-light-subtle shadow-sm" /> *@
+                }
+                else
+                {
+                    <a class="btn btn-link" href="@context.TabFileName" target="_blank">Download Tablature</a>
+                }
+            </div>
         </div>
     </GridDetailView>
 </Grid>
@@ -119,7 +172,7 @@ else
     private BandDTO CurrentBand { get; set; } = new();
     private int CurrentBandID { get; set; } = 0;
     private int CurrentAccountID { get; set; } = 0;
-    
+
     private List<SongDTO> MasterSongList { get; set; } = Enumerable.Empty<SongDTO>().ToList();
     private IEnumerable<SongDTO> Songs { get; set; } = Enumerable.Empty<SongDTO>();
     private IEnumerable<SongListTypeDTO> SongListTypes { get; set; } = Enumerable.Empty<SongListTypeDTO>();
@@ -129,7 +182,7 @@ else
     private string SearchForSongCriteria { get; set; } = string.Empty;
     private HashSet<SongDTO> SelectedSongs { get; set; } = new();
     private TaskOptions SelectedTask { get; set; } = TaskOptions.Empty;
-    
+
     // For single-item actions (like deleting one song)
     private SongDTO CurrentSelectedSong { get; set; } = new();
 
@@ -147,6 +200,9 @@ else
     private RemoveSongModal RemoveSongModal = default!;
     private Modal MusicSearchModal = new();
     private BulkSongRemovalModal BulkSongRemovalModal = new();
+
+    private IEnumerable<string> UploadErrorMessages { get; set; } = Enumerable.Empty<string>();
+    private string UploadSuccessMessage { get; set; } = string.Empty;
 
     private async Task<GridDataProviderResult<SongDTO>> SongDataProvider(GridDataProviderRequest<SongDTO> request)
     {
@@ -331,6 +387,72 @@ else
     private async Task OnSearchMusicCatalogClick() => await MusicSearchModal.ShowAsync();
     private async Task OnHideMusicSearchModalClick() => await MusicSearchModal.HideAsync();
     private async Task OnHideRemoveSongModalClick() => this.CurrentSelectedSong = new();
+
+    // ==== File Upload === 
+    private async Task HandleFileSelected(InputFileChangeEventArgs e, SongDTO songDTO, FileUploadType fileUploadType)
+    {
+        // isUploading = true;
+        // statusMessage = string.Empty;
+
+        UploadErrorMessages = new string[0];
+
+        try
+        {
+            if (!FileValidator.IsExtensionAllowed(e.File.Name))
+            {
+                // Show error message to user
+                //clear file upload
+                this.UploadErrorMessages = new string[] { "Invalid file type" };
+                return;
+            }
+
+            var maxFileSize = 1024 * 1024 * 10; // 10MB limit
+            var file = e.File;
+            using var stream = file.OpenReadStream(maxFileSize);
+            var uploadResult = await BandResourceManager.UploadResourceAsync(
+                bandId: CurrentBandID,
+                fileName: file.Name,
+                content: stream,
+                contentType: file.ContentType
+            );
+
+            if (uploadResult.Errors?.Any() ?? false)
+            {
+                UploadErrorMessages = uploadResult.Errors;
+                return;
+            }
+
+            switch (fileUploadType)
+            {
+                case FileUploadType.Tab:
+                    songDTO.TabFileName = uploadResult.Url;
+                    break;
+                case FileUploadType.Lyric:
+                    songDTO.LyricFileName = uploadResult.Url;
+                    break;
+                case FileUploadType.MP3:
+                    songDTO.Mp3FileName = uploadResult.Url;
+                    break;
+                case FileUploadType.SheetMusic:
+                    songDTO.SheetMusicFileName = uploadResult.Url;
+                    break;
+            }
+
+            await this.SongService.UpdateAsync(songDTO);
+
+            UploadSuccessMessage = $"File '{file.Name}' was uploaded successfully!";
+        }
+        catch (Exception ex)
+        {
+            //TODO: do not expose exception message to client
+            UploadErrorMessages = new string[] { ex.Message };
+        }
+        finally
+        {
+            // isUploading = false;
+            StateHasChanged();
+        }
+    }
 
     // === 7. Helpers ===
     private void ShowToast(ToastType type, string message)

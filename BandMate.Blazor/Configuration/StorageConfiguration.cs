@@ -1,4 +1,4 @@
-﻿using BandMate.Blazor.Services;
+﻿using BandMate.Blazor.Storage;
 
 namespace BandMate.Blazor.Configuration
 {
