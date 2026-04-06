@@ -6,7 +6,9 @@ namespace BandMate.MusicCatalog.Persistence
 {
     public interface IArtistRepository
     {
-         Task<IEnumerable<Artist>> SearchArtistsAsync(string name);
-         Task<IEnumerable<Album>> GetAlbums(string artistId);
+        Task<IEnumerable<Artist>> SearchArtistsAsync(string name);
+        Task<IEnumerable<Album>> GetAlbums(string artistId);
+        Task<Album> GetAlbum(string albumId);
+        Task<Song> GetTrack(string trackId);
     }
 }

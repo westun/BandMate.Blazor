@@ -66,6 +66,40 @@ namespace BandMate.MusicCatalog.Persistence
             });
         }
 
+        public async Task<Album> GetAlbum(string albumId)
+        {
+            var token = await GetAccessToken();
+            var limit = 50;
+            var getAlbumEndpoint = new Uri($"{BaseAddress}/albums/{albumId}");
+            var album = await this.MakeWebRequest<AlbumDTO>(getAlbumEndpoint, HttpMethod.Get, token.Access_Token);
+
+            //try to get 300x300 image at index 1
+            var albumImg = album.Images?.Length > 1 ? album.Images[1] : album.Images?.FirstOrDefault();
+            return new Album
+            {
+                Id = album.Id,
+                Name = album.Name,
+                AlbumImgCoverUrl = albumImg.Url, //get 300x300 image,
+                Release_Date = album.Release_Date,
+                Tracks = album.Tracks.Items.Select(t => new Song
+                {
+                    Id = t.Id,
+                    Name = t.Name,
+                    Track_Number = t.Track_Number,
+                }),
+            };
+        }
+
+        public async Task<Song> GetTrack(string trackId)
+        {
+            var token = await GetAccessToken();
+            var limit = 50;
+            var getTrackEndpoint = new Uri($"{BaseAddress}/tracks/{trackId}");
+            var track = await this.MakeWebRequest<Song>(getTrackEndpoint, HttpMethod.Get, token.Access_Token);
+
+            return track;
+        }
+
         private async Task<IEnumerable<AlbumDTO>> GetAlbumsWithoutTracks(string artistId)
         {
             var token = await GetAccessToken();
