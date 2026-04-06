@@ -1,4 +1,4 @@
-﻿<div class="row mb-4 pb-2">
+﻿<div class="row @(UseStandardBottomMargin ? "mb-4" : "")  pb-2">
     <div class="col text-center">
         <h1 class="display-6 fw-bold">
             @if (string.IsNullOrWhiteSpace(Title))
@@ -15,4 +15,6 @@
 
 @code {
     [Parameter] public string? Title { get; set; }
+
+    [Parameter] public bool UseStandardBottomMargin { get; set; } = true;
 }

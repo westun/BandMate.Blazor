@@ -1,4 +1,5 @@
-﻿@rendermode InteractiveServer
+﻿@using BootstrapBlazor.Components
+@rendermode InteractiveServer
 @inject IBandService BandService
 @inject IMusicCatalogService MusicCatalogService
 @inject IUserService UserService
@@ -9,10 +10,13 @@
 }
 else
 {
+    
     <PageHeader Title="Music Catalog Search" />
 
     <ArtistSearchForm Request="SearchRequest" 
                       OnSearch="OnSearchForArtist" />
+
+    <DataProviderLogo/>
 
     @if (CurrentView == MusicCatalogView.Artists)
     {
