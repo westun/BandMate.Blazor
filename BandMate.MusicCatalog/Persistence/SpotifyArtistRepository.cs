@@ -62,6 +62,7 @@ namespace BandMate.MusicCatalog.Persistence
                    Id = t.Id,
                    Name = t.Name,
                    Track_Number = t.Track_Number,
+                   AlbumId = a.Id,
                 }),
             });
         }
@@ -86,6 +87,7 @@ namespace BandMate.MusicCatalog.Persistence
                     Id = t.Id,
                     Name = t.Name,
                     Track_Number = t.Track_Number,
+                    AlbumId = album.Id
                 }),
             };
         }

@@ -264,7 +264,8 @@ else
             CreatedByAccountID = this.CurrentAccountID,
             SongListTypeID = this.CurrentSongListTypeID,
             Artist = song.Artist,
-            Title = song.Title
+            Title = song.Title,
+            ExternalAlbumID = song.ExternalAlbumID,
         });
 
         var newSongModel = new SongListGridItemModel { Song = newSong };

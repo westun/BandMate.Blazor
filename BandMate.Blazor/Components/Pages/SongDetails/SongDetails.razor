@@ -4,6 +4,7 @@
 @rendermode InteractiveServer
 @inject ISongService SongService
 @inject IBandService BandService
+@inject IMusicCatalogService MusicCatalogService
 @inject IUserService UserService
 @inject NavigationManager NavigationManager
 
@@ -15,18 +16,28 @@ else
 {
     <div class="clearfix">
         <img src="images/Full_Logo_Green_PMS_U.svg" width="150" class="float-end" alt="Spotify Logo" />
-        <PageHeader Title="Song Details" />
+        <div class="ms-5 ps-5">
+            <PageHeader Title="Song Details" />
+        </div>
     </div>
-
-    <SongDetailsNav SongID="@Song.SongID"/>
 
     <div class="container pb-5">
         <div class="row justify-content-center">
             <div class="col-md-8 col-lg-6">
                 <div class="card border-0 shadow-lg text-white p-4"
                      style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border-radius: 20px;">
+                    <SongDetailsNav SongID="@Song.SongID" />
                     <div class="text-center mb-4">
-                        <img src="https://i.scdn.co/image/ab6761610000f178b85da6fc072594f79f5f27f9" class="img-fluid rounded-2 mb-3" >
+                        @if (!string.IsNullOrEmpty(AlbumImgCoverUrl))
+                        {
+                            <img src="@AlbumImgCoverUrl" class="img-fluid rounded-2 mb-3" >
+                        }
+                        else
+                        {
+                            <div class="my-5">
+                                <span class="bi bi-music-note-beamed fs-1 text-dark"></span>
+                            </div>
+                        }
                         <h2 class="fw-bold text-black-50">@Song.Title</h2>
                         <p class="text-black-50 fs-3">@Song.Artist</p>
                     </div>
@@ -97,6 +108,8 @@ else
 
     private bool IsLoading { get; set; } = true;
 
+    private string AlbumImgCoverUrl { get; set; } = string.Empty;
+
     protected override async Task OnInitializedAsync()
     {
         CurrentAccountID = await UserService.GetCurrentAccountIDAsync();
@@ -112,6 +125,12 @@ else
         {
             //not authorized to view this song
             NavigationManager.NavigateTo("/");
+        }
+
+        if (!string.IsNullOrEmpty(Song.ExternalAlbumID))
+        {
+            var externalAlbum = await MusicCatalogService.GetAlbumAsync(Song.ExternalAlbumID);
+            AlbumImgCoverUrl = externalAlbum.AlbumImgCoverUrl;
         }
 
         IsLoading = false;
