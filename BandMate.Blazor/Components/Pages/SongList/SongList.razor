@@ -246,6 +246,8 @@ else
             Title = this.NewCreateSongModel.Title
         });
 
+        newSong.CreatedDateForDisplay = DateTime.Now.ToString("d");
+
         var newSongModel = new SongListGridItemModel { Song = newSong };
 
         this.MasterSongList.Add(newSongModel);
@@ -267,6 +269,8 @@ else
             Title = song.Title,
             ExternalAlbumID = song.ExternalAlbumID,
         });
+
+        newSong.CreatedDateForDisplay = DateTime.Now.ToString("d");
 
         var newSongModel = new SongListGridItemModel { Song = newSong };
 
