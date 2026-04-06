@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using BandMate.Blazor.DTO.MusicCatalog;
-using BandMate.MusicCatalog.Models;
 using BandMate.MusicCatalog.Persistence;
 
 namespace BandMate.Blazor.Services
@@ -30,6 +29,20 @@ namespace BandMate.Blazor.Services
             var albums = await this.artistRepository.GetAlbums(artistId);
 
             return this.mapper.Map<IEnumerable<AlbumDTO>>(albums);
+        }
+
+        public async Task<AlbumDTO> GetAlbumAsync(string albumId)
+        {
+            var album = await this.artistRepository.GetAlbum(albumId);
+
+            return this.mapper.Map<AlbumDTO>(album);
+        }
+
+        public async Task<TrackDTO> GetTrackAsync(string trackId)
+        {
+            var track = await this.artistRepository.GetTrack(trackId);
+
+            return this.mapper.Map<TrackDTO>(track);
         }
     }
 }

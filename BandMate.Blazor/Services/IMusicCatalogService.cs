@@ -1,5 +1,4 @@
 ﻿using BandMate.Blazor.DTO.MusicCatalog;
-using BandMate.MusicCatalog.Models;
 
 namespace BandMate.Blazor.Services
 {
@@ -7,5 +6,7 @@ namespace BandMate.Blazor.Services
     {
         Task<IEnumerable<AlbumDTO>> GetAlbumsAsync(string artistId);
         Task<IEnumerable<ArtistDTO>> SearchArtistsAsync(string name);
+        Task<AlbumDTO> GetAlbumAsync(string albumId);
+        Task<TrackDTO> GetTrackAsync(string trackId);
     }
 }
