@@ -489,6 +489,9 @@ namespace BandMate.Domain.Migrations
                         .HasColumnType("datetimeoffset")
                         .HasDefaultValueSql("getutcdate()");
 
+                    b.Property<string>("ExternalAlbumID")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("KeySignature")
                         .HasColumnType("nvarchar(max)");
 

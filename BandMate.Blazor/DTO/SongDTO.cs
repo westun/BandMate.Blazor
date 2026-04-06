@@ -23,5 +23,6 @@
         public string CreatedDateForDisplay { get; set; }
         public string MyNotes { get; set; }
         public int CreatedByAccountID { get; set; }
+        public string? ExternalAlbumID { get; set; }
     }
 }

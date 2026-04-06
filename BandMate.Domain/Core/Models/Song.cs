@@ -45,7 +45,9 @@ namespace BandMate.Domain.Core.Models
 
         [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         public DateTimeOffset CreatedDate { get; set; }
-        
+
+        public string? ExternalAlbumID { get; set; }
+
         public virtual Band Band { get; set; }
         public virtual SongListType SongListType { get; set; }
         public virtual Account CreatedByAccount { get; set; }
