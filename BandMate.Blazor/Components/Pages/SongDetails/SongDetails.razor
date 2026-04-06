@@ -1,0 +1,119 @@
+﻿@page "/song/details/{SongID:int}";
+@using BandMate.Blazor.Components.Pages.SongDetails.Components
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject ISongService SongService
+@inject IBandService BandService
+@inject IUserService UserService
+@inject NavigationManager NavigationManager
+
+@if (IsLoading)
+{
+    <LoadingSpinner />
+}
+else
+{
+    <div class="clearfix">
+        <img src="images/Full_Logo_Green_PMS_U.svg" width="150" class="float-end" alt="Spotify Logo" />
+        <PageHeader Title="Song Details" />
+    </div>
+
+    <SongDetailsNav SongID="@Song.SongID"/>
+
+    <div class="container pb-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card border-0 shadow-lg text-white p-4"
+                     style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border-radius: 20px;">
+                    <div class="text-center mb-4">
+                        <img src="https://i.scdn.co/image/ab6761610000f178b85da6fc072594f79f5f27f9" class="img-fluid rounded-2 mb-3" >
+                        <h2 class="fw-bold text-black-50">@Song.Title</h2>
+                        <p class="text-black-50 fs-3">@Song.Artist</p>
+                    </div>
+                    <div class="row g-3 text-dark">
+                        <div class="col-4">
+                            <small class="d-block text-black-50">Key Signature</small>
+                            <span class="fw-medium">D Minor</span>
+                        </div>
+                        <div class="col-4">
+                            <small class="d-block text-black-50">Key Signature</small>
+                            <span class="fw-medium">D Minor</span>
+                        </div>
+                        <div class="col-4">
+                            <small class="d-block text-black-50">Key Signature</small>
+                            <span class="fw-medium">D Minor</span>
+                        </div>
+                        <div class="col-4">
+                            <small class="d-block text-black-50">Key Signature</small>
+                            <span class="fw-medium">D Minor</span>
+                        </div>
+                        <div class="col-4">
+                            <small class="d-block text-black-50">Key Signature</small>
+                            <span class="fw-medium">D Minor</span>
+                        </div>
+                        <div class="col-4">
+                            <small class="d-block text-black-50">Key Signature</small>
+                            <span class="fw-medium">D Minor</span>
+                        </div>
+                        <div class="col-4">
+                            <small class="d-block text-black-50">Key Signature</small>
+                            <span class="fw-medium">D Minor</span>
+                        </div>
+                        <div class="col-4">
+                            <small class="d-block text-black-50">Key Signature</small>
+                            <span class="fw-medium">D Minor</span>
+                        </div>
+                        <div class="col-4">
+                            <small class="d-block text-black-50">Key Signature</small>
+                            <span class="fw-medium">D Minor</span>
+                        </div>
+                        <div class="col-4">
+                            <small class="d-block text-black-50">Key Signature</small>
+                            <span class="fw-medium">D Minor</span>
+                        </div>
+                        <div class="col-4">
+                            <small class="d-block text-black-50">Key Signature</small>
+                            <span class="fw-medium">D Minor</span>
+                        </div>
+                        <div class="col-4">
+                            <small class="d-block text-black-50">Key Signature</small>
+                            <span class="fw-medium">D Minor</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int SongID { get; set; }
+
+    private SongDTO Song { get; set; }
+    private BandDTO CurrentBand { get; set; } = new();
+    private int CurrentBandID { get; set; } = 0;
+    private int CurrentAccountID { get; set; } = 0;
+
+    private bool IsLoading { get; set; } = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        CurrentAccountID = await UserService.GetCurrentAccountIDAsync();
+
+        CurrentBand = await BandService.GetDefaultBand(CurrentAccountID);
+        CurrentBandID = CurrentBand?.BandID ?? 0;
+
+        //these are all the songs the user has access to with the current band they are viewing
+        var songs = (await SongService.GetSongsByBandIDAsync(CurrentBandID)).ToList();
+
+        Song = songs.FirstOrDefault(s => s.SongID == SongID);
+        if (Song is null)
+        {
+            //not authorized to view this song
+            NavigationManager.NavigateTo("/");
+        }
+
+        IsLoading = false;
+    }
+}

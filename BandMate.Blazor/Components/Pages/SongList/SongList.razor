@@ -1,6 +1,5 @@
 ﻿@page "/song/list";
 @using BandMate.Blazor.Components.Pages.SongList.Components
-@using System.ComponentModel.DataAnnotations
 @attribute [Authorize]
 @rendermode InteractiveServer
 @inject ISongService SongService
@@ -78,6 +77,14 @@ else
             @context.Song.KeySignature
         </GridColumn>
         <GridColumn TItem="SongListGridItemModel" HeaderText="Actions">
+            <a class="btn btn-secondary" href="song/details/@context.Song.SongID">
+                <span class="bi bi-info-circle"></span> 
+                View Details
+            </a>
+            <a class="btn btn-secondary" href="song/edit/@context.Song.SongID">
+                <span class="bi bi-pencil-fill"></span>
+                Edit
+            </a>
             <Button Color="ButtonColor.Danger"
                     Class="ms-2"
                     @onclick="() => this.OnConfirmRemoveSongClick(context)" title="Remove Song">

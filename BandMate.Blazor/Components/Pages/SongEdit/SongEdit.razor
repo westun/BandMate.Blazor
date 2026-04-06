@@ -1,0 +1,52 @@
+﻿@page "/song/edit/{SongID:int}";
+@using BandMate.Blazor.Components.Pages.SongEdit.Components
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject ISongService SongService
+@inject ISongListTypeService SongListTypeService
+@inject IBandService BandService
+@inject IUserService UserService
+@inject NavigationManager NavigationManager
+
+@if (IsLoading)
+{
+    <LoadingSpinner />
+}
+else
+{
+    <PageHeader Title="Edit Song Details"/>
+
+    <SongEditNav SongID="Song.SongID"/>
+}
+
+@code {
+    [Parameter]
+    public int SongID { get; set; }
+
+    private SongDTO Song { get; set; }
+    private BandDTO CurrentBand { get; set; } = new();
+    private int CurrentBandID { get; set; } = 0;
+    private int CurrentAccountID { get; set; } = 0;
+
+    private bool IsLoading { get; set; } = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        CurrentAccountID = await UserService.GetCurrentAccountIDAsync();
+
+        CurrentBand = await BandService.GetDefaultBand(CurrentAccountID);
+        CurrentBandID = CurrentBand?.BandID ?? 0;
+
+        //these are all the songs the user has access to with the current band they are viewing
+        var songs = (await SongService.GetSongsByBandIDAsync(CurrentBandID)).ToList();
+
+        Song = songs.FirstOrDefault(s => s.SongID == SongID);
+        if (Song is null)
+        {
+            //not authorized to view this song
+            NavigationManager.NavigateTo("/");
+        }
+
+        IsLoading = false;
+    }
+}

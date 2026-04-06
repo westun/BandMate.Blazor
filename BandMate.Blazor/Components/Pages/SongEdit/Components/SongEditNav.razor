@@ -1,0 +1,13 @@
+﻿<a href="song/list" class="btn btn-primary">
+    <span class="bi bi-arrow-left-circle-fill"></span>
+    Back To Song Catalog
+</a>
+<a href="song/details/@SongID" class="btn btn-secondary">
+    <span class="bi bi-pencil-fill"></span>
+    Cancel
+</a>
+
+@code {
+    [Parameter]
+    public int SongID { get; set; }
+}
