@@ -1,5 +1,4 @@
-﻿@using BootstrapBlazor.Components
-@rendermode InteractiveServer
+﻿@rendermode InteractiveServer
 @inject IBandService BandService
 @inject IMusicCatalogService MusicCatalogService
 @inject IUserService UserService
@@ -10,7 +9,6 @@
 }
 else
 {
-    
     <PageHeader Title="Music Catalog Search" />
 
     <ArtistSearchForm Request="SearchRequest" 
