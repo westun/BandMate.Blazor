@@ -1,0 +1,33 @@
+﻿<div class="col-4">
+    <small class="d-block text-black-50">@FieldName</small>
+    @if (FieldValueIsFile && !string.IsNullOrEmpty(FieldValue))
+    {
+        <a href="@FieldValue" target="_blank">Download</a>
+    }
+    else if (FieldValueIsLink && !string.IsNullOrEmpty(FieldValue))
+    {
+        <a href="@FieldValue" target="_blank">View</a>
+    }
+    else if (!string.IsNullOrEmpty(FieldValue))
+    {
+        <span class="fw-medium">@FieldValue</span>
+    }
+    else
+    {
+        <span class="fw-medium">N/A</span>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string FieldName { get; set; } = string.Empty;
+
+    [Parameter]
+    public string FieldValue { get; set; } = string.Empty;
+
+    [Parameter]
+    public bool FieldValueIsLink { get; set; }
+
+    [Parameter]
+    public bool FieldValueIsFile { get; set; }
+}

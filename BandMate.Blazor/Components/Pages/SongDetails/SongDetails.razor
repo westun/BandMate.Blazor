@@ -2,9 +2,11 @@
 @using BandMate.Blazor.Components.Pages.SongDetails.Components
 @attribute [Authorize]
 @rendermode InteractiveServer
-@inject ISongService SongService
+@inject IAccountService AccountService
 @inject IBandService BandService
 @inject IMusicCatalogService MusicCatalogService
+@inject ISongListTypeService SongListTypeService
+@inject ISongService SongService
 @inject IUserService UserService
 @inject NavigationManager NavigationManager
 
@@ -28,9 +30,9 @@ else
                      style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border-radius: 20px;">
                     <SongDetailsNav SongID="@Song.SongID" />
                     <div class="text-center mb-4">
-                        @if (!string.IsNullOrEmpty(AlbumImgCoverUrl))
+                        @if (!string.IsNullOrEmpty(ExternalAlbum?.AlbumImgCoverUrl))
                         {
-                            <img src="@AlbumImgCoverUrl" class="img-fluid rounded-2 mb-3" >
+                            <img src="@ExternalAlbum?.AlbumImgCoverUrl" class="img-fluid rounded-2 mb-3">
                         }
                         else
                         {
@@ -40,57 +42,21 @@ else
                             </div>
                         }
                         <h2 class="fw-bold text-black-50">@Song.Title</h2>
-                        <p class="text-black-50 fs-3">@Song.Artist</p>
+                        <div class="text-black-50 fs-3">@Song.Artist</div>
                     </div>
                     <div class="row g-3 text-dark">
-                        <div class="col-4">
-                            <small class="d-block text-black-50">Key Signature</small>
-                            <span class="fw-medium">D Minor</span>
-                        </div>
-                        <div class="col-4">
-                            <small class="d-block text-black-50">Key Signature</small>
-                            <span class="fw-medium">D Minor</span>
-                        </div>
-                        <div class="col-4">
-                            <small class="d-block text-black-50">Key Signature</small>
-                            <span class="fw-medium">D Minor</span>
-                        </div>
-                        <div class="col-4">
-                            <small class="d-block text-black-50">Key Signature</small>
-                            <span class="fw-medium">D Minor</span>
-                        </div>
-                        <div class="col-4">
-                            <small class="d-block text-black-50">Key Signature</small>
-                            <span class="fw-medium">D Minor</span>
-                        </div>
-                        <div class="col-4">
-                            <small class="d-block text-black-50">Key Signature</small>
-                            <span class="fw-medium">D Minor</span>
-                        </div>
-                        <div class="col-4">
-                            <small class="d-block text-black-50">Key Signature</small>
-                            <span class="fw-medium">D Minor</span>
-                        </div>
-                        <div class="col-4">
-                            <small class="d-block text-black-50">Key Signature</small>
-                            <span class="fw-medium">D Minor</span>
-                        </div>
-                        <div class="col-4">
-                            <small class="d-block text-black-50">Key Signature</small>
-                            <span class="fw-medium">D Minor</span>
-                        </div>
-                        <div class="col-4">
-                            <small class="d-block text-black-50">Key Signature</small>
-                            <span class="fw-medium">D Minor</span>
-                        </div>
-                        <div class="col-4">
-                            <small class="d-block text-black-50">Key Signature</small>
-                            <span class="fw-medium">D Minor</span>
-                        </div>
-                        <div class="col-4">
-                            <small class="d-block text-black-50">Key Signature</small>
-                            <span class="fw-medium">D Minor</span>
-                        </div>
+                        <SongDetailsGridItem FieldName="Created By" FieldValue="@CreatedByAccountName" />
+                        <SongDetailsGridItem FieldName="Created Date" FieldValue="@Song.CreatedDateForDisplay" />
+                        <SongDetailsGridItem FieldName="Song Type" FieldValue="@SongTypeName" />
+                        <SongDetailsGridItem FieldName="BPM" FieldValue="@Song.Bpm.ToString()" />
+                        <SongDetailsGridItem FieldName="Key Signature" FieldValue="@Song.KeySignature" />
+                        <SongDetailsGridItem FieldName="Mp3 File" FieldValue="@Song.Mp3FileName" FieldValueIsFile="true" />
+                        <SongDetailsGridItem FieldName="Tab File" FieldValue="@Song.TabFileName" FieldValueIsFile="true" />
+                        <SongDetailsGridItem FieldName="Lyric File" FieldValue="@Song.LyricFileName" FieldValueIsFile="true" />
+                        <SongDetailsGridItem FieldName="Sheet Music File" FieldValue="@Song.SheetMusicFileName" FieldValueIsFile="true" />
+                        <SongDetailsGridItem FieldName="Youtube Url" FieldValue="@Song.YoutubeURL" FieldValueIsLink="true" />
+                        <SongDetailsGridItem FieldName="Sheet Music Url" FieldValue="@Song.SheetMusicURL" FieldValueIsLink="true" />
+                        <SongDetailsGridItem FieldName="Lyric Url" FieldValue="@Song.LyricURL" FieldValueIsLink="true" />
                     </div>
                 </div>
             </div>
@@ -109,7 +75,11 @@ else
 
     private bool IsLoading { get; set; } = true;
 
-    private string AlbumImgCoverUrl { get; set; } = string.Empty;
+    private string SongTypeName { get; set; } = string.Empty;
+
+    private AlbumDTO ExternalAlbum { get; set; } = new();
+
+    private string CreatedByAccountName { get; set; } = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -128,10 +98,19 @@ else
             NavigationManager.NavigateTo("/");
         }
 
+        var songListTypes = (await this.SongListTypeService.GetBandIDAsync(this.CurrentBandID)).ToList();
+        SongTypeName = songListTypes.FirstOrDefault(slt => slt.SongListTypeID == Song.SongListTypeID)?.ListTypeName;
+
         if (!string.IsNullOrEmpty(Song.ExternalAlbumID))
         {
-            var externalAlbum = await MusicCatalogService.GetAlbumAsync(Song.ExternalAlbumID);
-            AlbumImgCoverUrl = externalAlbum.AlbumImgCoverUrl;
+            ExternalAlbum = await MusicCatalogService.GetAlbumAsync(Song.ExternalAlbumID);
+        }
+
+        var accounts = await AccountService.GetAllByBandID(CurrentBandID);
+        var createdByAccount = accounts.FirstOrDefault(a => a.AccountID == Song.CreatedByAccountID);
+        if (createdByAccount is not null)
+        {
+            CreatedByAccountName = $"{createdByAccount.FirstName} {createdByAccount.LastName}";
         }
 
         IsLoading = false;
