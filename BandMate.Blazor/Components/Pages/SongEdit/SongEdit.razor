@@ -20,6 +20,14 @@ else
 
     <SongEditNav SongID="SongDTO.SongID" />
 
+    @if (ShowSuccessAlert)
+    {
+        <Alert Color="AlertColor.Success" Dismissable="false" Class="mt-3">
+            <Icon Name="IconName.CheckCircleFill" class="me-2"></Icon>
+            Song updated successfully.
+        </Alert>
+    }
+
     <div class="container mt-4">
         <div class="card shadow-sm">
             <div class="card-header bg-primary text-white">
@@ -117,6 +125,7 @@ else
     private int CurrentAccountID { get; set; } = 0;
 
     private bool IsLoading { get; set; } = true;
+    private bool ShowSuccessAlert { get; set; }
 
     private SongTypeModel SongTypeModel { get; set; } = new();
     private IEnumerable<SongListTypeDTO> SongTypes { get; set; } = new List<SongListTypeDTO>();
@@ -158,8 +167,6 @@ else
 
     private async Task HandleSubmit()
     {
-        Console.WriteLine("meow");
-
         //TODO: use mapper
         var songDTO = new SongDTO
         {
@@ -188,5 +195,13 @@ else
 
         //update song dto to have latest data after update
         SongDTO = await GenericDalService.GetByIdAsync(SongDTO.SongID);
+
+        ShowSuccessAlert = true;
+        StateHasChanged();
+
+        await Task.Delay(5000);  //give the alert x number of seconds before it dissapears.  This won't block the ui thread
+
+        ShowSuccessAlert = false;
+        StateHasChanged();
     }
 }
