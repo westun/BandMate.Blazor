@@ -2,12 +2,12 @@
 @using BandMate.Blazor.Components.Pages.SongList.Components
 @attribute [Authorize]
 @rendermode InteractiveServer
-@inject ISongService SongService
-@inject ISongListTypeService SongListTypeService
-@inject IBandService BandService
-@inject IUserService UserService
 @inject IBandResourceManager BandResourceManager
+@inject IBandService BandService
 @inject IFileUploadValidator FileValidator
+@inject ISongListTypeService SongListTypeService
+@inject ISongService SongService
+@inject IUserService UserService
 
 @if (this.IsLoading)
 {
@@ -430,9 +430,11 @@ else
 
             await Task.Delay(1000); //hack: try to allow progress bar to always display that it's at 100% when it's done
 
-            AssignFileNamesForSong(songModel.Song, fileUploadType, uploadResult.Url);
+            //use latest version from db so fields are not overidden
+            var songFromDB = await SongService.GetByIdAsync(songModel.Song.SongID);
+            AssignFileNamesForSong(songFromDB, fileUploadType, uploadResult.Url);
 
-            await this.SongService.UpdateAsync(songModel.Song);
+            await this.SongService.UpdateAsync(songFromDB);
 
             var sasUrl = await BandResourceManager.GetSasUrlAsync(CurrentBandID, file.Name);
             AssignFileNamesForSong(songModel.Song, fileUploadType, sasUrl);
