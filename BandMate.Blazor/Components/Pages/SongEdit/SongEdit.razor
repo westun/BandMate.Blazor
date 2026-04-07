@@ -1,14 +1,16 @@
 ﻿@page "/song/edit/{SongID:int}";
+@using AutoMapper
 @using BandMate.Blazor.Components.Pages.SongEdit.Components
 @using BandMate.Domain.Core.Models
 @attribute [Authorize]
 @rendermode InteractiveServer
+@inject IBandService BandService
+@inject IGenericDalService<Song, SongDTO> GenericDalService
+@inject IMapper Mapper
 @inject ISongService SongService
 @inject ISongListTypeService SongListTypeService
-@inject IBandService BandService
 @inject IUserService UserService
 @inject NavigationManager NavigationManager
-@inject IGenericDalService<Song, SongDTO> GenericDalService
 
 @if (IsLoading)
 {
@@ -41,7 +43,7 @@ else
                     <div class="row g-3">
                         <div class="col-md-12">
                             <div class="col-md-6">
-                                <ValidNativeSelect @bind-Value="SongModel.SongTypeID" Label="Song Type">
+                                <ValidNativeSelect @bind-Value="SongModel.SongListTypeID" Label="Song Type">
                                     @foreach (var type in SongTypes)
                                     {
                                         <option value="@type.SongListTypeID">@type.ListTypeName</option>
@@ -52,11 +54,11 @@ else
 
                         <div class="col-md-6">
                             <label class="form-label">Artist</label>
-                            <InputText @bind-Value="SongModel.Artist" class="form-control" placeholder="Artist Name" />
+                            <InputText @bind-Value="SongModel.Artist" disabled="@DisableFields" class="form-control" placeholder="Artist Name" />
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Title</label>
-                            <InputText @bind-Value="SongModel.Title" class="form-control" placeholder="Song Title" />
+                            <InputText @bind-Value="SongModel.Title" disabled="@DisableFields" class="form-control" placeholder="Song Title" />
                         </div>
 
                         <div class="col-md-6">
@@ -126,6 +128,7 @@ else
 
     private bool IsLoading { get; set; } = true;
     private bool ShowSuccessAlert { get; set; }
+    private bool DisableFields { get; set; }
 
     private SongTypeModel SongTypeModel { get; set; } = new();
     private IEnumerable<SongListTypeDTO> SongTypes { get; set; } = new List<SongListTypeDTO>();
@@ -147,54 +150,23 @@ else
             NavigationManager.NavigateTo("/");
         }
 
-        SongModel = new EditSongModel
-        {
-            SongTypeID = SongDTO.SongListTypeID.HasValue ? SongDTO.SongListTypeID.Value : 0,
-            Artist = SongDTO.Artist,
-            Title = SongDTO.Title,
-            Bpm = SongDTO.Bpm,
-            KeySignature = SongDTO.KeySignature,
-            YoutubeURL = SongDTO.YoutubeURL,
-            LyricURL = SongDTO.LyricURL,
-            SheetMusicURL = SongDTO.SheetMusicURL,
-            Notes = SongDTO.Notes,
-        };
+        SongModel = Mapper.Map(SongDTO, SongModel);
 
         SongTypes = (await this.SongListTypeService.GetBandIDAsync(this.CurrentBandID)).ToList();
+
+        if (!string.IsNullOrEmpty(SongDTO?.ExternalAlbumID))
+        {
+            //don't allow artist and title to be changed when song comes from an external source (like spotify)
+            DisableFields = true;
+        }
 
         IsLoading = false;
     }
 
     private async Task HandleSubmit()
     {
-        //TODO: use mapper
-        var songDTO = new SongDTO
-        {
-            SongID = SongDTO.SongID,
-
-            SongListTypeID = SongModel.SongTypeID,
-            Artist = SongModel.Artist,
-            Title = SongModel.Title,
-            Bpm = SongModel.Bpm,
-            KeySignature = SongModel.KeySignature,
-
-            YoutubeURL = SongModel.YoutubeURL,
-            LyricURL = SongModel.LyricURL,
-            SheetMusicURL = SongModel.SheetMusicURL,
-
-            Notes = SongModel.Notes,
-
-            //these properties shouldn't change, get them from the Song variable storing the data from the db
-            TabFileName = SongDTO.TabFileName,
-            Mp3FileName = SongDTO.Mp3FileName,
-            LyricFileName = SongDTO.LyricFileName,
-            SheetMusicFileName = SongDTO.SheetMusicFileName,
-        };
-
-        await SongService.UpdateAsync(songDTO);
-
-        //update song dto to have latest data after update
-        SongDTO = await GenericDalService.GetByIdAsync(SongDTO.SongID);
+        SongDTO = Mapper.Map(SongModel, SongDTO);
+        await SongService.UpdateAsync(SongDTO);
 
         ShowSuccessAlert = true;
         StateHasChanged();

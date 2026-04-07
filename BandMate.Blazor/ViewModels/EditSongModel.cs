@@ -5,7 +5,7 @@ namespace BandMate.Blazor.ViewModels
     public class EditSongModel
     {
         [Range(1, int.MaxValue, ErrorMessage = "Please select a song type.")]
-        public int SongTypeID { get; set; } = 0;
+        public int SongListTypeID { get; set; } = 0;
 
         [Required(ErrorMessage = "Song artist is required.")]
         [StringLength(100, ErrorMessage = "Name is too long.")]
