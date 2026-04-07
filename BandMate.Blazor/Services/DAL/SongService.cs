@@ -22,6 +22,13 @@ namespace BandMate.Blazor.Services.DAL
             this.bandResourceManager = bandResourceManager;
         }
 
+        public async Task<SongDTO> GetByIdAsync(int songID)
+        {
+            var song = await this.songRepository.GetAsync(songID);
+
+            return this.mapper.Map<SongDTO>(song);
+        }
+
         public async Task<IEnumerable<SongDTO>> GetSongsByBandIDAsync(int bandID)
         {
             var songs = await this.songRepository.GetByBandIDAsync(bandID);
@@ -42,6 +49,21 @@ namespace BandMate.Blazor.Services.DAL
                 {
                     song.TabFileName = await this.bandResourceManager
                         .GetSasUrlAsync(bandID, Path.GetFileName(song.TabFileName));
+                }
+                if (!string.IsNullOrWhiteSpace(song.LyricFileName))
+                {
+                    song.LyricFileName = await this.bandResourceManager
+                        .GetSasUrlAsync(bandID, Path.GetFileName(song.LyricFileName));
+                }
+                if (!string.IsNullOrWhiteSpace(song.Mp3FileName))
+                {
+                    song.Mp3FileName = await this.bandResourceManager
+                        .GetSasUrlAsync(bandID, Path.GetFileName(song.Mp3FileName));
+                }
+                if (!string.IsNullOrWhiteSpace(song.SheetMusicFileName))
+                {
+                    song.SheetMusicFileName = await this.bandResourceManager
+                        .GetSasUrlAsync(bandID, Path.GetFileName(song.SheetMusicFileName));
                 }
             }
 
