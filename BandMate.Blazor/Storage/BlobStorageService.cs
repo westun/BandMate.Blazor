@@ -1,4 +1,5 @@
-﻿using Azure.Storage.Blobs;
+﻿using Azure;
+using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Sas;
 using BandMate.Blazor.Storage.Models;
@@ -94,8 +95,21 @@ namespace BandMate.Blazor.Storage
         {
             var containerClient = this.blobServiceClient.GetBlobContainerClient(containerName);
 
+            //these variables are only created to allow try catch to work
+            //would simply call create if not exists everytime, but this method is often called in a loop
+            var emptyPolicy = new BlobContainerAccessPolicy();
+            var accessPolicy = Response.FromValue(emptyPolicy, null!);
+            try
+            {
+                accessPolicy = await containerClient.GetAccessPolicyAsync();
+            }
+            catch(RequestFailedException ex)
+            {
+                containerClient.CreateIfNotExists();
+                accessPolicy = await containerClient.GetAccessPolicyAsync();
+            }
+
             // 1. Fetch current policies first so we don't overwrite them
-            var accessPolicy = await containerClient.GetAccessPolicyAsync();
             var existingIdentifiers = accessPolicy.Value.SignedIdentifiers.ToList();
 
             if (existingIdentifiers.Any(x => x.Id == policyId))
