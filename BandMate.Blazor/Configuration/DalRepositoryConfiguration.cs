@@ -14,6 +14,8 @@ namespace BandMate.Blazor.Configuration
             services.AddTransient<IBandAccountRepository, BandAccountRepository>();
             services.AddTransient<IBandNameRepository, BandNameRepository>();
 
+            services.AddScoped(typeof(IGenericDalRepository<>), typeof(GenericDalRepository<>));
+
             return services;
         }
     }

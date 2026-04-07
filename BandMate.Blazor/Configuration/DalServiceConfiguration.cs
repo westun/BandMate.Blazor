@@ -13,6 +13,8 @@ namespace BandMate.Blazor.Configuration
             services.AddTransient<IBandAccountService, BandAccountService>();
             services.AddTransient<IBandNameService, BandNameService>();
 
+            services.AddScoped(typeof(IGenericDalService<,>), typeof(GenericDalService<,>));
+
             return services;
         }
     }
