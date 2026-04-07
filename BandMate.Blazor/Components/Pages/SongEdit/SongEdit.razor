@@ -1,5 +1,6 @@
 ﻿@page "/song/edit/{SongID:int}";
 @using BandMate.Blazor.Components.Pages.SongEdit.Components
+@using BandMate.Domain.Core.Models
 @attribute [Authorize]
 @rendermode InteractiveServer
 @inject ISongService SongService
@@ -7,6 +8,7 @@
 @inject IBandService BandService
 @inject IUserService UserService
 @inject NavigationManager NavigationManager
+@inject IGenericDalService<Song, SongDTO> GenericDalService
 
 @if (IsLoading)
 {
@@ -16,19 +18,108 @@ else
 {
     <PageHeader Title="Edit Song Details"/>
 
-    <SongEditNav SongID="Song.SongID"/>
+    <SongEditNav SongID="SongDTO.SongID" />
+
+    <div class="container mt-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">Song Details</h3>
+            </div>
+            <div class="card-body">
+                <EditForm Model="@SongModel" OnValidSubmit="HandleSubmit" FormName="SongEntryForm">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="text-danger" />
+
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <div class="col-md-6">
+                                <ValidNativeSelect @bind-Value="SongModel.SongTypeID" Label="Song Type">
+                                    @foreach (var type in SongTypes)
+                                    {
+                                        <option value="@type.SongListTypeID">@type.ListTypeName</option>
+                                    }
+                                </ValidNativeSelect>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Artist</label>
+                            <InputText @bind-Value="SongModel.Artist" class="form-control" placeholder="Artist Name" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Title</label>
+                            <InputText @bind-Value="SongModel.Title" class="form-control" placeholder="Song Title" />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">BPM</label>
+                            <InputNumber @bind-Value="SongModel.Bpm" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Key Signature</label>
+                            <InputText @bind-Value="SongModel.KeySignature" class="form-control" />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">YouTube URL</label>
+                            <InputText @bind-Value="SongModel.YoutubeURL" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Sheet Music URL</label>
+                            <InputText @bind-Value="SongModel.SheetMusicURL" class="form-control" />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Lyric URL</label>
+                            <InputText @bind-Value="SongModel.LyricURL" class="form-control" />
+                        </div>
+
+                        <div class="col-6">
+                            <label class="form-label">Band Notes</label>
+                            <InputText @bind-Value="SongModel.Notes" class="form-control" />
+                        </div>
+
+                        @* <div class="col-md-4">
+                            <label class="form-label">MP3 File Name</label>
+                            <InputText @bind-Value="Song.Mp3FileName" class="form-control" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Tab File Name</label>
+                            <InputText @bind-Value="Song.TabFileName" class="form-control" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Lyric File Name</label>
+                            <InputText @bind-Value="Song.LyricFileName" class="form-control" />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Sheet Music File Name</label>
+                            <InputText @bind-Value="Song.SheetMusicFileName" class="form-control" />
+                        </div> *@
+                    </div>
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-success px-4">Save Song</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
 }
 
 @code {
     [Parameter]
     public int SongID { get; set; }
 
-    private SongDTO Song { get; set; }
+    private EditSongModel SongModel { get; set; }
+    private SongDTO SongDTO { get; set; }
     private BandDTO CurrentBand { get; set; } = new();
     private int CurrentBandID { get; set; } = 0;
     private int CurrentAccountID { get; set; } = 0;
 
     private bool IsLoading { get; set; } = true;
+
+    private SongTypeModel SongTypeModel { get; set; } = new();
+    private IEnumerable<SongListTypeDTO> SongTypes { get; set; } = new List<SongListTypeDTO>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -40,13 +131,62 @@ else
         //these are all the songs the user has access to with the current band they are viewing
         var songs = (await SongService.GetSongsByBandIDAsync(CurrentBandID)).ToList();
 
-        Song = songs.FirstOrDefault(s => s.SongID == SongID);
-        if (Song is null)
+        SongDTO = songs.FirstOrDefault(s => s.SongID == SongID);
+        if (SongDTO is null)
         {
             //not authorized to view this song
             NavigationManager.NavigateTo("/");
         }
 
+        SongModel = new EditSongModel
+        {
+            SongTypeID = SongDTO.SongListTypeID.HasValue ? SongDTO.SongListTypeID.Value : 0,
+            Artist = SongDTO.Artist,
+            Title = SongDTO.Title,
+            Bpm = SongDTO.Bpm,
+            KeySignature = SongDTO.KeySignature,
+            YoutubeURL = SongDTO.YoutubeURL,
+            LyricURL = SongDTO.LyricURL,
+            SheetMusicURL = SongDTO.SheetMusicURL,
+            Notes = SongDTO.Notes,
+        };
+
+        SongTypes = (await this.SongListTypeService.GetBandIDAsync(this.CurrentBandID)).ToList();
+
         IsLoading = false;
+    }
+
+    private async Task HandleSubmit()
+    {
+        Console.WriteLine("meow");
+
+        //TODO: use mapper
+        var songDTO = new SongDTO
+        {
+            SongID = SongDTO.SongID,
+
+            SongListTypeID = SongModel.SongTypeID,
+            Artist = SongModel.Artist,
+            Title = SongModel.Title,
+            Bpm = SongModel.Bpm,
+            KeySignature = SongModel.KeySignature,
+
+            YoutubeURL = SongModel.YoutubeURL,
+            LyricURL = SongModel.LyricURL,
+            SheetMusicURL = SongModel.SheetMusicURL,
+
+            Notes = SongModel.Notes,
+
+            //these properties shouldn't change, get them from the Song variable storing the data from the db
+            TabFileName = SongDTO.TabFileName,
+            Mp3FileName = SongDTO.Mp3FileName,
+            LyricFileName = SongDTO.LyricFileName,
+            SheetMusicFileName = SongDTO.SheetMusicFileName,
+        };
+
+        await SongService.UpdateAsync(songDTO);
+
+        //update song dto to have latest data after update
+        SongDTO = await GenericDalService.GetByIdAsync(SongDTO.SongID);
     }
 }
