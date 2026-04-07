@@ -44,16 +44,29 @@
                 <label for="Input.ConfirmPassword">Confirm Password</label>
                 <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
             </div>
+            <Alert Color="AlertColor.Info">
+                We only collect your name to support features within the site, such as your members page or viewing who created a song.
+            </Alert>
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.FirstName" id="Input.FirstName" class="form-control" aria-required="true" placeholder="First Name"/>
+                <label for="Input.FirstName">First Name</label>
+                <ValidationMessage For="() => Input.FirstName" class="text-danger" />
+            </div>
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.LastName" id="Input.LastName" class="form-control" aria-required="true" placeholder="Last Name" />
+                <label for="Input.LastName">Last Name</label>
+                <ValidationMessage For="() => Input.LastName" class="text-danger" />
+            </div>
             <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
         </EditForm>
     </div>
-    <div class="col-lg-4 col-lg-offset-2">
+    @* <div class="col-lg-4 col-lg-offset-2">
         <section>
             <h3>Use another service to register.</h3>
             <hr />
             <ExternalLoginPicker />
         </section>
-    </div>
+    </div> *@
 </div>
 
 @code {
@@ -86,6 +99,8 @@
         {
             Email = Input.Email,
             Username = Input.Email,
+            FirstName = Input.FirstName,
+            LastName = Input.LastName,
         });
 
         user.AccountID = newAccount.AccountID;
@@ -115,17 +130,17 @@
 
         await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
 
-        if (UserManager.Options.SignIn.RequireConfirmedAccount)
-        {
-            RedirectManager.RedirectTo(
-                "Account/RegisterConfirmation",
-                new() { ["email"] = Input.Email, ["returnUrl"] = ReturnUrl });
-        }
-        else
-        {
+        // if (UserManager.Options.SignIn.RequireConfirmedAccount)
+        // {
+        //     RedirectManager.RedirectTo(
+        //         "Account/RegisterConfirmation",
+        //         new() { ["email"] = Input.Email, ["returnUrl"] = ReturnUrl });
+        // }
+        // else
+        // {
             await SignInManager.SignInAsync(user, isPersistent: false);
             RedirectManager.RedirectTo(ReturnUrl);
-        }
+        // }
     }
 
     private ApplicationUser CreateUser()
@@ -167,5 +182,12 @@
         [Display(Name = "Confirm password")]
         [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; } = "";
+
+        [Required]
+        [Display(Name = "First Name")]
+        public string FirstName { get; set; } = "";
+
+        [Display(Name = "Last Name")]
+        public string LastName { get; set; } = "";
     }
 }
