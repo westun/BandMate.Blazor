@@ -81,11 +81,11 @@ namespace BandMate.Blazor.Storage
 
             var sasBuilder = new BlobSasBuilder
             {
+                //do not set expiration here if it is set in the policy
                 Identifier = policyID,
                 BlobContainerName = containerName,
                 BlobName = fileName,
                 Resource = "b",
-                ExpiresOn = DateTime.UtcNow.AddMinutes(30),
             };
 
             return blobClient.GenerateSasUri(sasBuilder).ToString();
