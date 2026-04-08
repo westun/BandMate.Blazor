@@ -1,0 +1,34 @@
+﻿<div class="upload-overlay d-flex flex-column align-items-center justify-content-center">
+    <div class="upload-card shadow-lg p-4 bg-white rounded-3">
+        <h5 class="mb-3 text-primary">
+            <i class="@IconClass me-2"></i>@Title
+        </h5>
+        <Progress Height="25" Class="mb-2">
+            <ProgressBar @ref="ProgressBar"
+                            Color="ProgressColor.Primary" />
+        </Progress>
+        <div class="d-flex justify-content-between small text-muted">
+            <span>@StatusText</span>
+            <span>@ProgressValue</span>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "Uploading...";
+    [Parameter] public string IconClass { get; set; } = "bi bi-cloud-arrow-up-fill";
+    [Parameter] public string StatusText { get; set; } = "Uploading";
+    [Parameter] public string ProgressValue { get; set; }
+
+    public ProgressBar ProgressBar { get; set; }
+
+    public void SetWidth(double width)
+    {
+        ProgressBar.SetWidth(width);
+    }
+
+    public void SetLabel(string text)
+    {
+        ProgressBar.SetLabel($"{text}%");
+    }
+}

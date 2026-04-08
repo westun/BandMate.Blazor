@@ -119,21 +119,7 @@ else
 
 @if (IsUploading)
 {
-    <div class="upload-overlay d-flex flex-column align-items-center justify-content-center">
-        <div class="upload-card shadow-lg p-4 bg-white rounded-3">
-            <h5 class="mb-3 text-primary">
-                <i class="bi bi-cloud-arrow-up-fill me-2"></i>Uploading...
-            </h5>
-            <Progress Height="25" Class="mb-2">
-                <ProgressBar @ref="FileUploadProgressBar"
-                             Color="ProgressColor.Primary" />
-            </Progress>
-            <div class="d-flex justify-content-between small text-muted">
-                <span>Uploading</span>
-                <span>@UploadPercentageDisplay</span>
-            </div>
-        </div>
-    </div>
+    <FileUploadProgressBar @ref="FileUploadProgressBar" ProgressValue="@UploadPercentageDisplay" />
 }
 
 @code {
@@ -173,7 +159,7 @@ else
     private BulkSongRemovalModal BulkSongRemovalModal = new();
 
     // File upload 
-    private ProgressBar FileUploadProgressBar { get; set; }
+    private FileUploadProgressBar FileUploadProgressBar { get; set; }
     private bool IsUploading { get; set; }
     private string UploadPercentageDisplay { get; set; } = "0%";
 
