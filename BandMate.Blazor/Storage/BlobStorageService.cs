@@ -103,10 +103,13 @@ namespace BandMate.Blazor.Storage
             {
                 accessPolicy = await containerClient.GetAccessPolicyAsync();
             }
-            catch(RequestFailedException ex)
+            catch (RequestFailedException ex)
             {
-                containerClient.CreateIfNotExists();
-                accessPolicy = await containerClient.GetAccessPolicyAsync();
+                if (ex.ErrorCode == BlobErrorCode.ContainerNotFound)
+                {
+                    containerClient.CreateIfNotExists();
+                    accessPolicy = await containerClient.GetAccessPolicyAsync();
+                }
             }
 
             // 1. Fetch current policies first so we don't overwrite them
