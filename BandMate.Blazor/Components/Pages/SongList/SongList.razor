@@ -9,22 +9,22 @@
 @inject ISongService SongService
 @inject IUserService UserService
 
-@if (this.IsLoading)
+@if (IsLoading)
 {
     <LoadingSpinner />
 }
 else
 {
-    <PageHeader Title="@this.CurrentBand?.Name" />
+    <PageHeader Title="@CurrentBand?.Name" />
 
     <SongListActions OnCreate="OnCreateNewSongClick"
                      OnSearchCatalog="OnSearchMusicCatalogClick" />
         
-    @if (this.ShowCreateSongPanel)
+    @if (ShowCreateSongPanel)
     {
         <div class="row">
             <div class="col-md-8">
-                <SongCreateForm Model="this.NewCreateSongModel"
+                <SongCreateForm Model="NewCreateSongModel"
                                 OnSave="OnCreateSong"
                                 OnCancel="OnCancelCreatingNewSong" />
             </div>
@@ -36,9 +36,9 @@ else
                   ActiveId="CurrentSongListTypeID"
                   OnChanged="OnSongListTypeChanged" />
     
-    <SongBulkActions SelectedSongs="this.SelectedSongs"
-                     AvailableTypes="this.SongListTypes"
-                     CurrentTypeId="this.CurrentSongListTypeID"
+    <SongBulkActions SelectedSongs="SelectedSongs"
+                     AvailableTypes="SongListTypes"
+                     CurrentTypeId="CurrentSongListTypeID"
                      OnBulkRemoveClick="OnOpenBulkSongRemovalModal"
                      OnMoveSongs="OnChangeSongType"
                      @bind-SelectedTask="SelectedTask" />
@@ -55,7 +55,7 @@ else
           AllowSorting="true"
           Responsive="true"
           AllowSelection="true"
-          @bind-SelectedItems="this.SelectedSongs"
+          @bind-SelectedItems="SelectedSongs"
           SelectionMode="GridSelectionMode.Multiple"
           AllowDetailView="true">
     
@@ -86,7 +86,7 @@ else
                 </a>
                 <Button Color="ButtonColor.Danger"
                         Class="ms-2"
-                        @onclick="() => this.OnConfirmRemoveSongClick(context)" title="Remove Song">
+                        @onclick="() => OnConfirmRemoveSongClick(context)" title="Remove Song">
                     <Icon Name="IconName.Trash" />
                 </Button>
             </GridColumn>
@@ -100,7 +100,7 @@ else
 }
 
 <RemoveSongModal @ref="RemoveSongModal"
-                 SongModel="this.CurrentSelectedSong"
+                 SongModel="CurrentSelectedSong"
                  OnCancel="OnHideRemoveSongModalClick"
                  OnConfirm="OnRemoveSelectedSongClick" />
 
@@ -165,94 +165,94 @@ else
 
     private async Task<GridDataProviderResult<SongListGridItemModel>> SongDataProvider(GridDataProviderRequest<SongListGridItemModel> request)
     {
-        this.Songs = this.MasterSongList.ToList();
-        if (!this.Songs.Any())
+        Songs = MasterSongList.ToList();
+        if (!Songs.Any())
         {
-            var songs = (await this.SongService.GetSongsByBandIDAsync(this.CurrentBandID));
-            this.Songs = songs.Select(s => new SongListGridItemModel { Song = s });
-            this.MasterSongList = this.Songs.ToList();
+            var songs = (await SongService.GetSongsByBandIDAsync(CurrentBandID));
+            Songs = songs.Select(s => new SongListGridItemModel { Song = s });
+            MasterSongList = Songs.ToList();
         }
 
-        if (this.CurrentSongListTypeID > 0)
+        if (CurrentSongListTypeID > 0)
         {
-            this.Songs = this.Songs.Where(s => s.Song.SongListTypeID == this.CurrentSongListTypeID);
+            Songs = Songs.Where(s => s.Song.SongListTypeID == CurrentSongListTypeID);
         }
 
-        @if (!string.IsNullOrWhiteSpace(this.SearchForSongCriteria))
+        @if (!string.IsNullOrWhiteSpace(SearchForSongCriteria))
         {
-            this.Songs = this.Songs.Where(s =>
-                s.Song.Artist.Contains(this.SearchForSongCriteria, StringComparison.OrdinalIgnoreCase) ||
-                s.Song.Title.Contains(this.SearchForSongCriteria, StringComparison.OrdinalIgnoreCase));
+            Songs = Songs.Where(s =>
+                s.Song.Artist.Contains(SearchForSongCriteria, StringComparison.OrdinalIgnoreCase) ||
+                s.Song.Title.Contains(SearchForSongCriteria, StringComparison.OrdinalIgnoreCase));
         }
 
-        this.IsLoading = false;
+        IsLoading = false;
 
-        this.StateHasChanged();
+        StateHasChanged();
 
-        return request.ApplyTo(this.Songs);
+        return request.ApplyTo(Songs);
     }
 
     protected override async Task OnInitializedAsync()
     {
-        this.CurrentAccountID = await this.UserService.GetCurrentAccountIDAsync();
+        CurrentAccountID = await UserService.GetCurrentAccountIDAsync();
 
-        this.CurrentBand = await this.BandService.GetDefaultBand(this.CurrentAccountID);
-        this.CurrentBandID = this.CurrentBand?.BandID ?? 0;
+        CurrentBand = await BandService.GetDefaultBand(CurrentAccountID);
+        CurrentBandID = CurrentBand?.BandID ?? 0;
 
-        var songs = (await this.SongService.GetSongsByBandIDAsync(this.CurrentBandID)).ToList();
-        this.MasterSongList = songs.Select(s => new SongListGridItemModel { Song = s }).ToList();
-        this.SongListTypes = (await this.SongListTypeService.GetBandIDAsync(this.CurrentBandID)).ToList();
-        this.CurrentSongListTypeID = this.SongListTypes.FirstOrDefault()?.SongListTypeID ?? 0;
+        var songs = (await SongService.GetSongsByBandIDAsync(CurrentBandID)).ToList();
+        MasterSongList = songs.Select(s => new SongListGridItemModel { Song = s }).ToList();
+        SongListTypes = (await SongListTypeService.GetBandIDAsync(CurrentBandID)).ToList();
+        CurrentSongListTypeID = SongListTypes.FirstOrDefault()?.SongListTypeID ?? 0;
 
-        this.IsLoading = false;
+        IsLoading = false;
     }
 
     // === 2. Navigation & Grid State ===
     private async Task OnSongListTypeChanged(int songListTypeID)
     {
-        this.CurrentSongListTypeID = songListTypeID;
-        this.ClearSelectedTaskOption();
-        await this.RefreshGrid();
+        CurrentSongListTypeID = songListTypeID;
+        ClearSelectedTaskOption();
+        await RefreshGrid();
     }
 
     private async Task RefreshGrid()
     {
-        await this.CurrentGrid.RefreshDataAsync();
+        await CurrentGrid.RefreshDataAsync();
     }
 
     // === 3. Song Creation (Manual & Catalog) ===
-    private void OnCreateNewSongClick() => this.ShowCreateSongPanel = true;
+    private void OnCreateNewSongClick() => ShowCreateSongPanel = true;
 
     private async Task OnCreateSong()
     {
         var newSong = await SongService.CreateAsync(new SongDTO
         {
-            BandID = this.CurrentBandID,
-            CreatedByAccountID = this.CurrentAccountID,
-            SongListTypeID = this.CurrentSongListTypeID,
-            Artist = this.NewCreateSongModel.Artist,
-            Title = this.NewCreateSongModel.Title
+            BandID = CurrentBandID,
+            CreatedByAccountID = CurrentAccountID,
+            SongListTypeID = CurrentSongListTypeID,
+            Artist = NewCreateSongModel.Artist,
+            Title = NewCreateSongModel.Title
         });
 
         newSong.CreatedDateForDisplay = DateTime.Now.ToString("d");
 
         var newSongModel = new SongListGridItemModel { Song = newSong };
 
-        this.MasterSongList.Add(newSongModel);
-        this.SortMasterList();
+        MasterSongList.Add(newSongModel);
+        SortMasterList();
 
         ShowToast(ToastType.Success, $"New song {newSong.Title} by {newSong.Artist} was created succesfully.");
-        this.ClearNewSongRequest();
-        await this.RefreshGrid();
+        ClearNewSongRequest();
+        await RefreshGrid();
     }
 
     private async Task HandleTrackSelected(SongDTO song)
     {
         var newSong = await SongService.CreateAsync(new SongDTO
         {
-            BandID = this.CurrentBandID,
-            CreatedByAccountID = this.CurrentAccountID,
-            SongListTypeID = this.CurrentSongListTypeID,
+            BandID = CurrentBandID,
+            CreatedByAccountID = CurrentAccountID,
+            SongListTypeID = CurrentSongListTypeID,
             Artist = song.Artist,
             Title = song.Title,
             ExternalAlbumID = song.ExternalAlbumID,
@@ -262,46 +262,46 @@ else
 
         var newSongModel = new SongListGridItemModel { Song = newSong };
 
-        this.MasterSongList.Add(newSongModel);
-        this.SortMasterList();
+        MasterSongList.Add(newSongModel);
+        SortMasterList();
 
-        var currentSongListTypeName = this.SongListTypes.FirstOrDefault(slt => slt.SongListTypeID == this.CurrentSongListTypeID);
-        this.ShowToast(ToastType.Success, $"{song.Title} was succesfully added to {currentSongListTypeName?.ListTypeName}.");
+        var currentSongListTypeName = SongListTypes.FirstOrDefault(slt => slt.SongListTypeID == CurrentSongListTypeID);
+        ShowToast(ToastType.Success, $"{song.Title} was succesfully added to {currentSongListTypeName?.ListTypeName}.");
 
-        await this.RefreshGrid();
+        await RefreshGrid();
     }
 
-    private void OnCancelCreatingNewSong() => this.ClearNewSongRequest();
+    private void OnCancelCreatingNewSong() => ClearNewSongRequest();
 
     private void ClearNewSongRequest()
     {
-        this.NewCreateSongModel = new();
-        this.ShowCreateSongPanel = false;
+        NewCreateSongModel = new();
+        ShowCreateSongPanel = false;
     }
 
     // === 4. Search & Filtering ===
     private async Task OnSearchForSongs(ChangeEventArgs e)
     {
-        this.SearchForSongCriteria = e.Value?.ToString() ?? string.Empty;
-        await this.RefreshGrid();
+        SearchForSongCriteria = e.Value?.ToString() ?? string.Empty;
+        await RefreshGrid();
     }
 
     private async Task ClearSearchResults()
     {
-        this.SearchForSongCriteria = string.Empty;
-        await this.RefreshGrid();
+        SearchForSongCriteria = string.Empty;
+        await RefreshGrid();
     }
 
     private void SortMasterList()
     {
-        this.MasterSongList = this.MasterSongList
+        MasterSongList = MasterSongList
             .OrderBy(s => s.Song.Artist, StringComparer.OrdinalIgnoreCase)
             .ThenBy(s => s.Song.Title, StringComparer.OrdinalIgnoreCase)
             .ToList();
     }
 
     // === 5. Bulk Actions (Move & Remove) ===
-    private void ClearSelectedTaskOption() => this.SelectedTask = TaskOptions.Empty;
+    private void ClearSelectedTaskOption() => SelectedTask = TaskOptions.Empty;
 
     private async Task OnChangeSongType(int targetTypeID)
     {
@@ -313,10 +313,10 @@ else
         });
         await Task.WhenAll(createSongTasks);
 
-        var selectedSongType = this.SongListTypes.FirstOrDefault(slt => slt.SongListTypeID == targetTypeID);
+        var selectedSongType = SongListTypes.FirstOrDefault(slt => slt.SongListTypeID == targetTypeID);
         ShowToast(ToastType.Success, $"({createSongTasks.Count()}) songs were succesfully moved to {selectedSongType?.ListTypeName}.");
-        this.ClearSelectedTaskOption();
-        await this.RefreshGrid();
+        ClearSelectedTaskOption();
+        await RefreshGrid();
     }
 
     private async Task OnRemoveSelectedBulkSongsClick()
@@ -326,20 +326,20 @@ else
 
         foreach (var song in SelectedSongs)
         {
-            this.MasterSongList.Remove(song);
+            MasterSongList.Remove(song);
         }
 
         await BulkSongRemovalModal.HideAsync();
         ShowToast(ToastType.Danger, "The selected songs were succesfully removed.");
-        this.ClearSelectedTaskOption();
-        await this.RefreshGrid();
+        ClearSelectedTaskOption();
+        await RefreshGrid();
     }
 
     // === 6. Single Item Actions & Modals ===
     private async Task OnConfirmRemoveSongClick(SongListGridItemModel song)
     {
-        this.CurrentSelectedSong = song;
-        await this.RemoveSongModal.ShowAsync();
+        CurrentSelectedSong = song;
+        await RemoveSongModal.ShowAsync();
     }
 
     private async Task OnRemoveSelectedSongClick()
@@ -347,23 +347,23 @@ else
         await SongService.DeleteAsync(CurrentSelectedSong.Song.SongID);
         await RemoveSongModal.HideAsync();
 
-        this.MasterSongList.Remove(CurrentSelectedSong);
+        MasterSongList.Remove(CurrentSelectedSong);
 
-        this.CurrentSelectedSong = new();
+        CurrentSelectedSong = new();
 
-        await this.RefreshGrid();
+        await RefreshGrid();
     }
 
     private async Task OnOpenBulkSongRemovalModal() => await BulkSongRemovalModal.ShowAsync();
     private async Task OnHideBulkSongRemovalModalClick() => await BulkSongRemovalModal.HideAsync();
     private async Task OnSearchMusicCatalogClick() => await MusicSearchModal.ShowAsync();
     private async Task OnHideMusicSearchModalClick() => await MusicSearchModal.HideAsync();
-    private async Task OnHideRemoveSongModalClick() => this.CurrentSelectedSong = new();
+    private async Task OnHideRemoveSongModalClick() => CurrentSelectedSong = new();
 
     // ==== File Upload === 
     private async Task HandleFileSelected(SongEvents.SongFileChangedEventArgs args)
     {
-        this.IsUploading = true;
+        IsUploading = true;
         StateHasChanged();
         await Task.Delay(1000); //hack: try to avoid the flicker effect for small files when it opens and closes too fast
 
@@ -422,7 +422,7 @@ else
             var songFromDB = await SongService.GetByIdAsync(songModel.Song.SongID);
             AssignFileNamesForSong(songFromDB, fileUploadType, uploadResult.Url, sasUrl: null);
 
-            await this.SongService.UpdateAsync(songFromDB);
+            await SongService.UpdateAsync(songFromDB);
 
             var sasUrl = await BandResourceManager.GetSasUrlAsync(CurrentBandID, file.Name);
             AssignFileNamesForSong(songModel.Song, fileUploadType, uploadResult.Url, sasUrl);
@@ -472,6 +472,6 @@ else
     // === 7. Helpers ===
     private void ShowToast(ToastType type, string message)
     {
-        this.ToastMessages.Add(new ToastMessage { Type = type, Message = message });
+        ToastMessages.Add(new ToastMessage { Type = type, Message = message });
     }
 }
