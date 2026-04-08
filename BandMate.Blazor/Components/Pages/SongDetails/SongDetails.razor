@@ -96,6 +96,7 @@ else
         {
             //not authorized to view this song
             NavigationManager.NavigateTo("/");
+            return;
         }
 
         var songListTypes = (await this.SongListTypeService.GetBandIDAsync(this.CurrentBandID)).ToList();
