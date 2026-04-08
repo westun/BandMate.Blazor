@@ -420,12 +420,12 @@ else
 
             //use latest version from db so fields are not overidden
             var songFromDB = await SongService.GetByIdAsync(songModel.Song.SongID);
-            AssignFileNamesForSong(songFromDB, fileUploadType, uploadResult.Url);
+            AssignFileNamesForSong(songFromDB, fileUploadType, uploadResult.Url, sasUrl: null);
 
             await this.SongService.UpdateAsync(songFromDB);
 
             var sasUrl = await BandResourceManager.GetSasUrlAsync(CurrentBandID, file.Name);
-            AssignFileNamesForSong(songModel.Song, fileUploadType, sasUrl);
+            AssignFileNamesForSong(songModel.Song, fileUploadType, uploadResult.Url, sasUrl);
 
             songModel.UploadSuccessMessage = $"File '{file.Name}' was uploaded successfully!";
         }
@@ -446,21 +446,25 @@ else
         UploadPercentageDisplay = "0%";
     }
 
-    private void AssignFileNamesForSong(SongDTO song, FileUploadType fileUploadType, string blobFullUrl)
+    private void AssignFileNamesForSong(SongDTO song, FileUploadType fileUploadType, string blobFullUrl, string sasUrl)
     {
         switch (fileUploadType)
         {
             case FileUploadType.Tab:
                 song.TabFileName = blobFullUrl;
+                song.TabFileNameSasUrl = sasUrl ?? song.TabFileNameSasUrl;
                 break;
             case FileUploadType.Lyric:
                 song.LyricFileName = blobFullUrl;
+                song.LyricFileNameSasUrl = sasUrl ?? song.LyricFileNameSasUrl;
                 break;
             case FileUploadType.MP3:
                 song.Mp3FileName = blobFullUrl;
+                song.Mp3FileNameSasUrl = sasUrl ?? song.Mp3FileNameSasUrl;
                 break;
             case FileUploadType.SheetMusic:
                 song.SheetMusicFileName = blobFullUrl;
+                song.SheetMusicFileNameSasUrl = sasUrl ?? song.SheetMusicFileNameSasUrl;
                 break;
         }
     }

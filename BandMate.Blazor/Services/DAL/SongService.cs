@@ -45,26 +45,7 @@ namespace BandMate.Blazor.Services.DAL
 
             foreach (var song in songDTOs)
             {
-                if (!string.IsNullOrWhiteSpace(song.TabFileName))
-                {
-                    song.TabFileName = await this.bandResourceManager
-                        .GetSasUrlAsync(bandID, Path.GetFileName(song.TabFileName));
-                }
-                if (!string.IsNullOrWhiteSpace(song.LyricFileName))
-                {
-                    song.LyricFileName = await this.bandResourceManager
-                        .GetSasUrlAsync(bandID, Path.GetFileName(song.LyricFileName));
-                }
-                if (!string.IsNullOrWhiteSpace(song.Mp3FileName))
-                {
-                    song.Mp3FileName = await this.bandResourceManager
-                        .GetSasUrlAsync(bandID, Path.GetFileName(song.Mp3FileName));
-                }
-                if (!string.IsNullOrWhiteSpace(song.SheetMusicFileName))
-                {
-                    song.SheetMusicFileName = await this.bandResourceManager
-                        .GetSasUrlAsync(bandID, Path.GetFileName(song.SheetMusicFileName));
-                }
+                await this.SetSasUrls(song, bandID);
             }
 
             return songDTOs;
@@ -91,6 +72,30 @@ namespace BandMate.Blazor.Services.DAL
             var songFromDatabase = await this.songRepository.UpdateAsync(song);
 
             return this.mapper.Map<SongDTO>(songFromDatabase);
+        }
+
+        private async Task SetSasUrls(SongDTO song, int bandID)
+        {
+            if (!string.IsNullOrWhiteSpace(song.TabFileName))
+            {
+                song.TabFileNameSasUrl = await this.bandResourceManager
+                    .GetSasUrlAsync(bandID, Path.GetFileName(song.TabFileName));
+            }
+            if (!string.IsNullOrWhiteSpace(song.LyricFileName))
+            {
+                song.LyricFileNameSasUrl = await this.bandResourceManager
+                    .GetSasUrlAsync(bandID, Path.GetFileName(song.LyricFileName));
+            }
+            if (!string.IsNullOrWhiteSpace(song.Mp3FileName))
+            {
+                song.Mp3FileNameSasUrl = await this.bandResourceManager
+                    .GetSasUrlAsync(bandID, Path.GetFileName(song.Mp3FileName));
+            }
+            if (!string.IsNullOrWhiteSpace(song.SheetMusicFileName))
+            {
+                song.SheetMusicFileNameSasUrl = await this.bandResourceManager
+                    .GetSasUrlAsync(bandID, Path.GetFileName(song.SheetMusicFileName));
+            }
         }
     }
 }

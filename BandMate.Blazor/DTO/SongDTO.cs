@@ -11,10 +11,14 @@
         public int? Bpm { get; set; }
         public string? KeySignature { get; set; }
         public string? Mp3FileName { get; set; }
+        public string? Mp3FileNameSasUrl { get; set; }
         public string? YoutubeURL { get; set; }
         public string? TabFileName { get; set; }
+        public string? TabFileNameSasUrl { get; set; }
         public string? LyricFileName { get; set; }
+        public string? LyricFileNameSasUrl { get; set; }
         public string? SheetMusicFileName { get; set; }
+        public string? SheetMusicFileNameSasUrl { get; set; }
         public string? SheetMusicURL { get; set; }
         public string? LyricURL { get; set; }
         public string? Notes { get; set; }

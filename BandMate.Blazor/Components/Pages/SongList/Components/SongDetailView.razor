@@ -37,22 +37,22 @@
             
     <div class="d-flex flex-wrap gap-3 align-items-end mb-3">
         <SongFilePicker Label="Tablature"
-                        FileName="@SongItem.Song.TabFileName"
+                        FileName="@SongItem.Song.TabFileNameSasUrl"
                         Icon="bi-music-note-beamed"
                         OnChange="@(e => HandleFileSelected(e, FileUploadType.Tab))" />
 
         <SongFilePicker Label="Lyrics"
-                        FileName="@SongItem.Song.LyricFileName"
+                        FileName="@SongItem.Song.LyricFileNameSasUrl"
                         Icon="bi-file-text"
                         OnChange="@(e => HandleFileSelected(e, FileUploadType.Lyric))" />
 
         <SongFilePicker Label="MP3"
-                        FileName="@SongItem.Song.Mp3FileName"
+                        FileName="@SongItem.Song.Mp3FileNameSasUrl"
                         Icon="bi-headphones"
                         OnChange="@(e => HandleFileSelected(e, FileUploadType.MP3))" />
 
         <SongFilePicker Label="Sheet Music"
-                        FileName="@SongItem.Song.SheetMusicFileName"
+                        FileName="@SongItem.Song.SheetMusicFileNameSasUrl"
                         Icon="bi-journal-text"
                         OnChange="@(e => HandleFileSelected(e, FileUploadType.SheetMusic))" />
     </div>
