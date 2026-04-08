@@ -110,6 +110,10 @@ namespace BandMate.Blazor.Storage
                     containerClient.CreateIfNotExists();
                     accessPolicy = await containerClient.GetAccessPolicyAsync();
                 }
+                else
+                {
+                    throw;
+                }
             }
 
             // 1. Fetch current policies first so we don't overwrite them
