@@ -68,28 +68,33 @@ else
     [Parameter]
     public int SongID { get; set; }
 
-    private SongDTO Song { get; set; }
-    private BandDTO CurrentBand { get; set; } = new();
-    private int CurrentBandID { get; set; } = 0;
-    private int CurrentAccountID { get; set; } = 0;
+    [PersistentState(AllowUpdates = true)]
+    public SongDTO Song { get; set; }
 
-    private bool IsLoading { get; set; } = true;
+    [PersistentState(AllowUpdates = true)]
+    public string SongTypeName { get; set; } = string.Empty;
 
-    private string SongTypeName { get; set; } = string.Empty;
+    [PersistentState(AllowUpdates = true)]
+    public AlbumDTO ExternalAlbum { get; set; } = new();
 
-    private AlbumDTO ExternalAlbum { get; set; } = new();
+    [PersistentState(AllowUpdates = true)]
+    public string CreatedByAccountName { get; set; } = string.Empty;
 
-    private string CreatedByAccountName { get; set; } = string.Empty;
+    private bool IsLoading => Song == null;
 
     protected override async Task OnInitializedAsync()
     {
-        CurrentAccountID = await UserService.GetCurrentAccountIDAsync();
-
-        CurrentBand = await BandService.GetDefaultBand(CurrentAccountID);
-        CurrentBandID = CurrentBand?.BandID ?? 0;
+        if (Song is not null)
+        {
+            return;
+        }
+        
+        var currentAccountID = await UserService.GetCurrentAccountIDAsync();
+        var currentBand = await BandService.GetDefaultBand(currentAccountID);
+        var currentBandID = currentBand?.BandID ?? 0;
 
         //these are all the songs the user has access to with the current band they are viewing
-        var songs = (await SongService.GetSongsByBandIDAsync(CurrentBandID)).ToList();
+        var songs = (await SongService.GetSongsByBandIDAsync(currentBandID)).ToList();
 
         Song = songs.FirstOrDefault(s => s.SongID == SongID);
         if (Song is null)
@@ -99,7 +104,7 @@ else
             return;
         }
 
-        var songListTypes = (await this.SongListTypeService.GetBandIDAsync(this.CurrentBandID)).ToList();
+        var songListTypes = (await SongListTypeService.GetBandIDAsync(currentBandID)).ToList();
         SongTypeName = songListTypes.FirstOrDefault(slt => slt.SongListTypeID == Song.SongListTypeID)?.ListTypeName;
 
         if (!string.IsNullOrEmpty(Song.ExternalAlbumID))
@@ -107,13 +112,11 @@ else
             ExternalAlbum = await MusicCatalogService.GetAlbumAsync(Song.ExternalAlbumID);
         }
 
-        var accounts = await AccountService.GetAllByBandID(CurrentBandID);
+        var accounts = await AccountService.GetAllByBandID(currentBandID);
         var createdByAccount = accounts.FirstOrDefault(a => a.AccountID == Song.CreatedByAccountID);
         if (createdByAccount is not null)
         {
             CreatedByAccountName = $"{createdByAccount.FirstName} {createdByAccount.LastName}";
         }
-
-        IsLoading = false;
     }
 }
