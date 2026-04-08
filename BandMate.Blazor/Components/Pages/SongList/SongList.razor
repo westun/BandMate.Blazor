@@ -45,59 +45,59 @@ else
 
     <SongSearchBar @bind-Criteria="SearchForSongCriteria"
                    OnSearchTriggered="RefreshGrid" />
-}
 
-<Grid @ref="CurrentGrid"
-      TItem="SongListGridItemModel"
-      Class="table table-hover table-bordered table-striped"
-      DataProvider="SongDataProvider"
-      AllowFiltering="false"
-      AllowPaging="false"
-      AllowSorting="true"
-      Responsive="true"
-      AllowSelection="true"
-      @bind-SelectedItems="this.SelectedSongs"
-      SelectionMode="GridSelectionMode.Multiple"
-      AllowDetailView="true">
+    <Grid @ref="CurrentGrid"
+          TItem="SongListGridItemModel"
+          Class="table table-hover table-bordered table-striped"
+          DataProvider="SongDataProvider"
+          AllowFiltering="false"
+          AllowPaging="false"
+          AllowSorting="true"
+          Responsive="true"
+          AllowSelection="true"
+          @bind-SelectedItems="this.SelectedSongs"
+          SelectionMode="GridSelectionMode.Multiple"
+          AllowDetailView="true">
     
-    <GridColumns>
-        <GridColumn TItem="SongListGridItemModel" HeaderText="Artist" PropertyName="Artist" SortString="Artist" SortKeySelector="item => item.Song.Artist" StringComparison="StringComparison.OrdinalIgnoreCase">
-            @context.Song.Artist
-        </GridColumn>
-        <GridColumn TItem="SongListGridItemModel" HeaderText="Title" PropertyName="Title" SortString="Title" SortKeySelector="item => item.Song.Title" StringComparison="StringComparison.OrdinalIgnoreCase">
-            @context.Song.Title
-        </GridColumn>
-        <GridColumn TItem="SongListGridItemModel" HeaderText="Created Date" PropertyName="CreatedDataForDisplay" SortString="CreatedDataForDisplay" SortKeySelector="item => item.Song.CreatedDate">
-            @context.Song.CreatedDateForDisplay
-        </GridColumn>
-        <GridColumn TItem="SongListGridItemModel" HeaderText="Bpm" PropertyName="Bpm" SortString="Bpm" SortKeySelector="item => item.Song.Bpm">
-            @context.Song.Bpm
-        </GridColumn>
-        <GridColumn TItem="SongListGridItemModel" HeaderText="KeySignature" PropertyName="KeySignature" SortString="KeySignature" SortKeySelector="item => item.Song.KeySignature">
-            @context.Song.KeySignature
-        </GridColumn>
-        <GridColumn TItem="SongListGridItemModel" HeaderText="Actions">
-            <a class="btn btn-secondary" href="song/details/@context.Song.SongID">
-                <span class="bi bi-info-circle"></span> 
-                View Details
-            </a>
-            <a class="btn btn-secondary" href="song/edit/@context.Song.SongID">
-                <span class="bi bi-pencil-fill"></span>
-                Edit
-            </a>
-            <Button Color="ButtonColor.Danger"
-                    Class="ms-2"
-                    @onclick="() => this.OnConfirmRemoveSongClick(context)" title="Remove Song">
-                <Icon Name="IconName.Trash" />
-            </Button>
-        </GridColumn>
-    </GridColumns>
+        <GridColumns>
+            <GridColumn TItem="SongListGridItemModel" HeaderText="Artist" PropertyName="Artist" SortString="Artist" SortKeySelector="item => item.Song.Artist" StringComparison="StringComparison.OrdinalIgnoreCase">
+                @context.Song.Artist
+            </GridColumn>
+            <GridColumn TItem="SongListGridItemModel" HeaderText="Title" PropertyName="Title" SortString="Title" SortKeySelector="item => item.Song.Title" StringComparison="StringComparison.OrdinalIgnoreCase">
+                @context.Song.Title
+            </GridColumn>
+            <GridColumn TItem="SongListGridItemModel" HeaderText="Created Date" PropertyName="CreatedDataForDisplay" SortString="CreatedDataForDisplay" SortKeySelector="item => item.Song.CreatedDate">
+                @context.Song.CreatedDateForDisplay
+            </GridColumn>
+            <GridColumn TItem="SongListGridItemModel" HeaderText="Bpm" PropertyName="Bpm" SortString="Bpm" SortKeySelector="item => item.Song.Bpm">
+                @context.Song.Bpm
+            </GridColumn>
+            <GridColumn TItem="SongListGridItemModel" HeaderText="KeySignature" PropertyName="KeySignature" SortString="KeySignature" SortKeySelector="item => item.Song.KeySignature">
+                @context.Song.KeySignature
+            </GridColumn>
+            <GridColumn TItem="SongListGridItemModel" HeaderText="Actions">
+                <a class="btn btn-secondary" href="song/details/@context.Song.SongID">
+                    <span class="bi bi-info-circle"></span> 
+                    View Details
+                </a>
+                <a class="btn btn-secondary" href="song/edit/@context.Song.SongID">
+                    <span class="bi bi-pencil-fill"></span>
+                    Edit
+                </a>
+                <Button Color="ButtonColor.Danger"
+                        Class="ms-2"
+                        @onclick="() => this.OnConfirmRemoveSongClick(context)" title="Remove Song">
+                    <Icon Name="IconName.Trash" />
+                </Button>
+            </GridColumn>
+        </GridColumns>
 
-    <GridDetailView TItem="SongListGridItemModel">
-        <SongDetailView OnSongFileChange="HandleFileSelected"
-                        SongItem="@context" />
-    </GridDetailView>
-</Grid>
+        <GridDetailView TItem="SongListGridItemModel">
+            <SongDetailView OnSongFileChange="HandleFileSelected"
+                            SongItem="@context" />
+        </GridDetailView>
+    </Grid>
+}
 
 <RemoveSongModal @ref="RemoveSongModal"
                  SongModel="this.CurrentSelectedSong"
@@ -203,6 +203,8 @@ else
         this.MasterSongList = songs.Select(s => new SongListGridItemModel { Song = s }).ToList();
         this.SongListTypes = (await this.SongListTypeService.GetBandIDAsync(this.CurrentBandID)).ToList();
         this.CurrentSongListTypeID = this.SongListTypes.FirstOrDefault()?.SongListTypeID ?? 0;
+
+        this.IsLoading = false;
     }
 
     // === 2. Navigation & Grid State ===
