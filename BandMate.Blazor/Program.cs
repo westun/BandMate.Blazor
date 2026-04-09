@@ -3,8 +3,8 @@ using BandMate.Blazor.Components;
 using BandMate.Blazor.Components.Account;
 using BandMate.Blazor.Configuration;
 using BandMate.Blazor.Data;
-using BandMate.Blazor.Security;
-using BandMate.Blazor.Services;
+using BandMate.Shared.Security;
+using BandMate.Shared.Services;
 using BandMate.Domain.Persistence;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -20,7 +20,8 @@ namespace BandMate.Blazor
 
             // Add services to the container.
             builder.Services.AddRazorComponents()
-                .AddInteractiveServerComponents();
+                .AddInteractiveServerComponents()
+                .AddInteractiveWebAssemblyComponents();
 
             builder.Services.AddCascadingAuthenticationState();
             builder.Services.AddScoped<IdentityRedirectManager>();
@@ -76,10 +77,11 @@ namespace BandMate.Blazor
             if (app.Environment.IsDevelopment())
             {
                 app.UseMigrationsEndPoint();
+                app.UseWebAssemblyDebugging();
             }
             else
             {
-                app.UseExceptionHandler("/Error");
+                app.UseExceptionHandler("/Error", createScopeForErrors: true);
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
@@ -90,8 +92,11 @@ namespace BandMate.Blazor
             app.UseAntiforgery();
 
             app.MapStaticAssets();
+
             app.MapRazorComponents<App>()
-                .AddInteractiveServerRenderMode();
+                .AddInteractiveServerRenderMode()
+                .AddInteractiveWebAssemblyRenderMode()
+                .AddAdditionalAssemblies(typeof(BandMate.Client._Imports).Assembly);
 
             // Add additional endpoints required by the Identity /Account Razor components.
             app.MapAdditionalIdentityEndpoints();

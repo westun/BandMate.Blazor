@@ -1,0 +1,13 @@
+﻿@* @rendermode InteractiveWebAssembly *@
+
+<h3>TestWebAssembly</h3>
+
+<button @onclick="@(() => TestText = "Second Text")"></button>
+
+<p>
+    @TestText
+</p>
+
+@code {
+    private string TestText { get; set; } = "First Text";
+}

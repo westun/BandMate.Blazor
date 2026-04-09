@@ -1,9 +1,9 @@
 ﻿using AutoMapper;
-using BandMate.Blazor.DTO;
-using BandMate.Blazor.DTO.MusicCatalog;
-using BandMate.Blazor.ViewModels;
 using BandMate.Domain.Core.Models;
 using BandMate.MusicCatalog.Models;
+using BandMate.Shared.DTO;
+using BandMate.Shared.DTO.MusicCatalog;
+using BandMate.Shared.ViewModels;
 
 namespace BandMate.Blazor.Configuration
 {

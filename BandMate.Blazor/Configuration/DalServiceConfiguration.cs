@@ -1,4 +1,4 @@
-﻿using BandMate.Blazor.Services.DAL;
+﻿using BandMate.Shared.Services.DAL;
 
 namespace BandMate.Blazor.Configuration
 {

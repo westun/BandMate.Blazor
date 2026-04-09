@@ -1,5 +1,5 @@
-﻿using BandMate.Blazor.Services;
-using BandMate.MusicCatalog.Persistence;
+﻿using BandMate.MusicCatalog.Persistence;
+using BandMate.Shared.Services;
 
 namespace BandMate.Blazor.Configuration
 {
