@@ -3,7 +3,7 @@
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Identity
-@using BandMate.Blazor.Data
+@using BandMate.Authentication.Data
 
 @inject UserManager<ApplicationUser> UserManager
 @inject SignInManager<ApplicationUser> SignInManager
@@ -11,6 +11,7 @@
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
 @inject IUserService UserService
+@inject IAuthApiService AuthApiService
 
 <PageTitle>Log in</PageTitle>
 
@@ -134,6 +135,10 @@
         if (result.Succeeded)
         {
             Logger.LogInformation("User logged in.");
+
+            //this is for testing web api.  Should only need to log in at one place.
+            // await AuthApiService.Login(Input.Email, Input.Password);
+
             RedirectManager.RedirectTo(ReturnUrl);
         }
         else if (result.RequiresTwoFactor)

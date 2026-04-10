@@ -1,11 +1,13 @@
+using BandMate.Authentication.Data;
 using BandMate.Blazor.Authentication;
 using BandMate.Blazor.Components;
 using BandMate.Blazor.Components.Account;
 using BandMate.Blazor.Configuration;
-using BandMate.Blazor.Data;
+using BandMate.Domain.Persistence;
 using BandMate.Shared.Security;
 using BandMate.Shared.Services;
-using BandMate.Domain.Persistence;
+using BandMate.Shared.Services.Api;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -37,13 +39,17 @@ namespace BandMate.Blazor
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(connectionString));
-            builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+            if (builder.Environment.IsDevelopment())
+            {
+                builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+            }
 
             builder.Services.AddIdentityCore<ApplicationUser>(options =>
                 {
-                    options.SignIn.RequireConfirmedAccount = true;
+                    options.SignIn.RequireConfirmedAccount = false;
                     options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
                 })
+                .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddSignInManager()
                 .AddDefaultTokenProviders()
@@ -70,6 +76,29 @@ namespace BandMate.Blazor
             builder.Services.AddScoped<NavStateService>();
 
             builder.Services.AddScoped<IFileUploadValidator, FileUploadValidator>();
+
+            builder.Services.AddScoped<IAuthApiService, AuthApiService>();
+
+            //builder.Services.AddHttpClient("BandMateApiHttpClient", client =>
+            //{
+            //    client.BaseAddress = new Uri("https://localhost:7236/");//builder.HostEnvironment.BaseAddress);
+            //})
+            //.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+            //{
+            //    // This allows the cookie to be sent with the request
+            //    UseDefaultCredentials = true
+            //});
+
+            //builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("BandMateApiHttpClient"));
+
+            builder.Services.AddScoped(sp =>
+            {
+                var navigationManager = sp.GetRequiredService<NavigationManager>();
+                return new HttpClient
+                {
+                    BaseAddress = new Uri("https://localhost:7236/")//navigationManager.BaseUri)
+                };
+            });
 
             var app = builder.Build();
 
