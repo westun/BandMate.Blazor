@@ -1,4 +1,5 @@
-﻿using BandMate.Shared.Services.DAL;
+﻿using BandMate.Shared.Services.Api;
+using BandMate.Shared.Services.DAL;
 
 namespace BandMate.Blazor.Configuration
 {
@@ -6,7 +7,7 @@ namespace BandMate.Blazor.Configuration
     {
         public static IServiceCollection AddDalServices(this IServiceCollection services)
         {
-            services.AddTransient<ISongService, SongService>();
+            services.AddTransient<ISongService, SongApiService>();
             services.AddTransient<ISongListTypeService, SongListTypeService>();
             services.AddTransient<IBandService, BandService>();
             services.AddTransient<IAccountService, AccountService>();

@@ -1,4 +1,6 @@
 <Solution>
+  <Project Path="BandMate.Api/BandMate.Api.csproj" Id="f95bb771-2549-459b-a074-d216e225b5db" />
+  <Project Path="BandMate.Authentication/BandMate.Authentication.csproj" Id="dae36938-2f13-4966-9c87-fc9f6b5e24a8" />
   <Project Path="BandMate.Blazor/BandMate.Blazor.csproj" />
   <Project Path="BandMate.Client/BandMate.Client.csproj" Id="18e43a2f-4aa0-4a87-8f86-8978e172cb46" />
   <Project Path="BandMate.Domain/BandMate.Domain.csproj" />

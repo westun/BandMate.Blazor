@@ -1,4 +1,4 @@
-using BandMate.Blazor.Data;
+using BandMate.Authentication.Data;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Identity;
 

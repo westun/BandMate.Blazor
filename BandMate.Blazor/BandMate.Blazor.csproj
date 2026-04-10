@@ -22,6 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BandMate.Authentication\BandMate.Authentication.csproj" />
     <ProjectReference Include="..\BandMate.Client\BandMate.Client.csproj" />
     <ProjectReference Include="..\BandMate.Shared\BandMate.Shared.csproj" />
   </ItemGroup>

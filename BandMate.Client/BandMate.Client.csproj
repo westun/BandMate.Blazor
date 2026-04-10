@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\" />
+    <ProjectReference Include="..\BandMate.Shared\BandMate.Shared.csproj" />
   </ItemGroup>
 
 </Project>

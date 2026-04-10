@@ -1,0 +1,32 @@
+﻿@page "/setlist"
+@using BandMate.Shared.DTO
+@* @attribute [StreamRendering] *@
+
+@rendermode InteractiveWebAssembly
+@* @rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false)) *@
+
+@inject ISongService SongService
+
+<h1>Setlist</h1>
+
+<p>@Song.Artist @Song.Title</p>
+
+@code {
+    private SongDTO Song { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        var songs = await SongService.GetSongsByBandIDAsync(2);
+        Song = songs.FirstOrDefault();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // This code only runs in the browser (WebAssembly)
+            var songs = SongService.GetSongsByBandIDAsync(2);
+        }
+    }
+}

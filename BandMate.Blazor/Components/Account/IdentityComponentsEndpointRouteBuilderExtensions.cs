@@ -1,6 +1,6 @@
+using BandMate.Authentication.Data;
 using BandMate.Blazor.Components.Account.Pages;
 using BandMate.Blazor.Components.Account.Pages.Manage;
-using BandMate.Blazor.Data;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components.Authorization;
