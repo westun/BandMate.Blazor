@@ -35,7 +35,7 @@ steps:
      # Reference the secret variable you created in Azure DevOps
     PublishProfilePassword: '$(publishPassword)' 
     # Update this to match where the publish task put the file
-    packageForLinux: '$(Build.ArtifactStagingDirectory)/**/*.zip'
+    packageForLinux: '$(Build.ArtifactStagingDirectory)/**/BandMateBlazorApp.zip'
 
 # steps:
 # - script: dotnet build --configuration $(buildConfiguration)
