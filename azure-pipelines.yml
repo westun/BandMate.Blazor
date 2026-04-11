@@ -21,7 +21,9 @@ steps:
   displayName: 'Publish and Zip App'
   inputs:
     command: 'publish'
-    publishWebProjects: true
+    # Path to your specific Blazor project
+    projects: '**/BandMate.Blazor.csproj' 
+    # publishWebProjects: true
     # Arguments to zip the output and place it in the Artifact Staging Directory
     arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
     zipAfterPublish: true
@@ -35,7 +37,7 @@ steps:
      # Reference the secret variable you created in Azure DevOps
     PublishProfilePassword: '$(publishPassword)' 
     # Update this to match where the publish task put the file
-    packageForLinux: '$(Build.ArtifactStagingDirectory)/**/BandMateBlazorApp.zip'
+    packageForLinux: '$(Build.ArtifactStagingDirectory)/**/BandMate.Blazor.zip'
 
 # steps:
 # - script: dotnet build --configuration $(buildConfiguration)
