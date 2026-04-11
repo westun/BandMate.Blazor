@@ -10,22 +10,48 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
-# - script: dotnet build --configuration $(buildConfiguration)
-#   displayName: 'dotnet build $(buildConfiguration)'
+# 1. Install .NET 10
+- task: UseDotNet@2
+  inputs:
+    packageType: 'sdk'
+    version: '10.x'
 
-# 1. Build and package the app into a ZIP
+# 2. Build and Package (This creates the missing .zip)
 - task: DotNetCoreCLI@2
-  displayName: 'Publish App'
+  displayName: 'Publish and Zip App'
   inputs:
     command: 'publish'
     publishWebProjects: true
+    # Arguments to zip the output and place it in the Artifact Staging Directory
     arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
     zipAfterPublish: true
 
+# 3. Deploy to Azure
 - task: AzureRmWebAppDeployment@5
   displayName: 'Deploy to Azure'
   inputs:
     ConnectionType: 'PublishProfile'
     PublishProfilePath: '$(System.DefaultWorkingDirectory)/**/*.pubxml'
-    PublishProfilePassword: 'walk the kango'
-    packageForLinux: '$(System.DefaultWorkingDirectory)/**/*.zip'
+    # Update this to match where the publish task put the file
+    packageForLinux: '$(Build.ArtifactStagingDirectory)/**/*.zip'
+
+# steps:
+# - script: dotnet build --configuration $(buildConfiguration)
+#   displayName: 'dotnet build $(buildConfiguration)'
+
+# 1. Build and package the app into a ZIP
+# - task: DotNetCoreCLI@2
+#   displayName: 'Publish App'
+#   inputs:
+#     command: 'publish'
+#     publishWebProjects: true
+#     arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+#     zipAfterPublish: true
+
+# - task: AzureRmWebAppDeployment@5
+#   displayName: 'Deploy to Azure'
+#   inputs:
+#     ConnectionType: 'PublishProfile'
+#     PublishProfilePath: '$(System.DefaultWorkingDirectory)/**/*.pubxml'
+#     PublishProfilePassword: 'walk the kango'
+#     packageForLinux: '$(System.DefaultWorkingDirectory)/**/*.zip'
